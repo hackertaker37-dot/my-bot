@@ -23,3 +23,7 @@ def get_available_numbers(country_code, combo_index=1, user_id=None):
     except Exception as e:
         print(f"Error scraping site: {e}")
         return []
+# أضف هذه الأسطر في نهاية الملف تماماً:
+if __name__ == "__main__":
+    numbers = get_available_numbers("US")
+    print("الأرقام التي تم العثور عليها:", numbers)
