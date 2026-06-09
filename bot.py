@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # --- 1. الإعدادات ---
-TOKEN = "توكن_البوت"
+TOKEN = "8886084382:AAH3-CYsadKsXuaLuCmupzjiIwGkE2U8RrM"
 ADMIN_ID = 123456789  # ضع معرفك هنا
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
