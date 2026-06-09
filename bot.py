@@ -1,40 +1,25 @@
-import sqlite3
 import telebot
-import random
 import os
 from telebot import types
 
 # ======================
-# ⚙️ إعدادات المطور (ضع بياناتك هنا)
+# 🔑 معلوماتك الحقيقية (تمت الإضافة)
 # ======================
-# يفضل استخدام os.getenv لقراءة البيانات من إعدادات السيرفر (Environment Variables)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "ضع_التوكن_هنا")
-ADMIN_IDS = [8728019066] # أيدي المطور
-DB_PATH = "bot.db"
-
-# ======================
-# 🔗 إعدادات القنوات والروابط
-# ======================
-CHANNEL_LINK = "https://t.me/shhsnbdb"
-CHANNEL_ID = -1003908016285
-
-# ======================
-# 🔌 إعدادات API (الخاصة بتليجرام)
-# ======================
+BOT_TOKEN = "8886084382:AAH3-CYsadKsXuaLuCmupzjiIwGkE2U8RrM"
+ADMIN_IDS = [8728019066]
 API_ID = 34997391
 API_HASH = "f1e6c3a84f61c38b3667acd210f77e12"
+
+# 📢 معلومات القناة
+CHANNEL_LINK = "https://t.me/shhsnbdb"
+CHANNEL_ID = -1003908016285
 
 # تهيئة البوت
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # ======================
-# 🛠️ هيكلية الدالة الأساسية (مثال للاستخدام)
+# 🚀 تشغيل البوت
 # ======================
-def get_available_numbers(country_code):
-    # هنا يتم استدعاء اللوحة التي تعمل عليها
-    # تذكر: لا تضع أي باسورد مباشر هنا، استخدم متغيرات البيئة
-    pass
-
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     markup = types.InlineKeyboardMarkup()
@@ -42,12 +27,13 @@ def send_welcome(message):
     markup.add(btn)
     
     welcome_text = (
-        "<b>مرحباً بك في بوت Mocha International</b>\n\n"
-        "<b>المطور:</b> @zafer43647\n"
-        "<b>أهلاً بك في خدماتنا الاحترافية.</b>"
+        "<b>❍─── 𓏺 𝙈𝙤𝙘𝙝𝙖 𝙄𝙣𝙩𝙚𝙧𝙣𝙖𝙩𝙞𝙤𝙣𝙖𝙡 𓏺 ───❍</b>\n\n"
+        "<b>👤 المطور:</b> @zafer43647\n"
+        "<b>🆔 الأيدي:</b> <code>8728019066</code>\n\n"
+        "<b>أهلاً بك في بوت Mocha للخدمات الاحترافية.</b>"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode="HTML", reply_markup=markup)
 
 if __name__ == "__main__":
-    print("🚀 البوت يعمل الآن..")
+    print("🚀 تم تفعيل معلومات Mocha بنجاح.. البوت يعمل الآن")
     bot.polling(none_stop=True)
