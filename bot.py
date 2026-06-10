@@ -108,23 +108,13 @@ def get_bot_image():
     return img if img else None
 
 # ======================
-# 🛡️ نظام الاشتراك الإجباري
+# 🛡️ نظام الاشتراك الإجباري (تم الإلغاء)
 # ======================
 def check_sub(user_id):
-    channel = get_setting('force_channel')
-    if not channel: return True
-    try:
-        member = bot.get_chat_member(channel, user_id)
-        return member.status in ['member', 'administrator', 'creator']
-    except: return True
+    return True
 
 def force_sub_markup():
-    channel = get_setting('force_channel')
-    link = get_setting('channel_link', 'https://t.me/ramosb')
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f"📢 اشترك في القناة", url=link))
-    markup.add(types.InlineKeyboardButton(f"✅ تم الاشتراك", callback_data="check_sub"))
-    return markup
+    return None
 
 # ======================
 # 🖼️ دالة التحديث الذكي (Smart Edit)
@@ -326,8 +316,6 @@ def show_admin_panel(cid, uid):
     emoji = get_custom_emoji(EMOJI_DEFAULT, "🛠")
     text = f"{emoji} <b>لوحة الأدمن - TITANS</b>"
     mk = types.InlineKeyboardMarkup(row_width=2)
-    mk.add(types.InlineKeyboardButton("📢 قناة الاشتراك", callback_data="adm_channel"),
-           types.InlineKeyboardButton("🔗 رابط القناة", callback_data="adm_link"))
     mk.add(types.InlineKeyboardButton("🖼️ تعيين صورة", callback_data="adm_setimg"),
            types.InlineKeyboardButton("❌ حذف صورة", callback_data="adm_delimg"))
     mk.add(types.InlineKeyboardButton("📊 الإحصائيات", callback_data="adm_stats"),
@@ -383,14 +371,6 @@ def callback_handler(call):
         with get_db() as conn: conn.execute("UPDATE users SET has_image=0 WHERE user_id=?", (uid,))
         bot.answer_callback_query(call.id, f"✅ تم الحذف")
         show_admin_panel(cid, uid)
-    elif data == "adm_channel":
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "📢")
-        smart_edit(cid, uid, f"{emoji} أرسل آيدي القناة:", types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_input")))
-        set_pending(uid, "set_channel")
-    elif data == "adm_link":
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "🔗")
-        smart_edit(cid, uid, f"{emoji} أرسل رابط القناة:", types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_input")))
-        set_pending(uid, "set_link")
     elif data == "adm_stats":
         with get_db() as conn:
             u = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
@@ -425,18 +405,6 @@ def handle_inputs(msg):
         emoji = get_custom_emoji(EMOJI_DEFAULT, "✅")
         bot.reply_to(msg, f"{emoji} تم تعيين الصورة")
         show_home(cid, uid)
-    elif action == "set_channel" and msg.text:
-        set_setting('force_channel', msg.text.strip())
-        with get_db() as conn: conn.execute("DELETE FROM pending_inputs WHERE user_id=?", (uid,))
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "✅")
-        bot.reply_to(msg, f"{emoji} تم تعيين قناة الاشتراك")
-        show_admin_panel(cid, uid)
-    elif action == "set_link" and msg.text:
-        set_setting('channel_link', msg.text.strip())
-        with get_db() as conn: conn.execute("DELETE FROM pending_inputs WHERE user_id=?", (uid,))
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "✅")
-        bot.reply_to(msg, f"{emoji} تم تعيين رابط القناة")
-        show_admin_panel(cid, uid)
     elif action == "broadcast" and msg.text:
         with get_db() as conn:
             users = conn.execute("SELECT user_id FROM users").fetchall()
