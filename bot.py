@@ -1,64 +1,52 @@
-import asyncio
-import logging
+import os
+import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
-from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# --- 1. الإعدادات ---
-TOKEN = "8886084382:AAH3-CYsadKsXuaLuCmupzjiIwGkE2U8RrM"
-ADMIN_ID = 123456789  # ضع معرفك هنا
+TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-engine = create_async_engine("sqlite+aiosqlite:///service_bot.db")
-async_session = async_sessionmaker(engine, expire_on_commit=False)
 
-# --- 2. الإعلان (Broadcast) الاحترافي ---
-@dp.message(Command("broadcast"))
-async def broadcast_command(message: types.Message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    
-    text = message.text.replace("/broadcast", "").strip()
-    if not text:
-        await message.answer("⚠️ أرسل الأمر مع نص الإعلان: /broadcast [النص]")
-        return
-    
-    # قائمة المستخدمين (يتم استخراجها من قاعدة البيانات فعلياً)
-    # هنا مثال لقائمة ثابتة
-    users = [ADMIN_ID] 
-    
-    await message.answer("🚀 بدأ الإرسال...")
-    for user_id in users:
-        try:
-            await bot.send_message(user_id, text)
-            await asyncio.sleep(0.05) 
-        except TelegramForbiddenError:
-            continue
-        except TelegramRetryAfter as e:
-            await asyncio.sleep(e.retry_after)
-            
-    await message.answer("✅ تم انتهاء الإرسال.")
+# رابط الموقع الخاص بك
+API_URL = "https://yourwebsite.com/api/add" 
 
-# --- 3. الواجهة والأزرار ---
+# دالة إرسال الرقم للموقع
+async def send_to_website(number):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(API_URL, json={"number": number}) as resp:
+            return resp.status == 200
+
+# --- الأزرار ---
+def get_full_menu():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📱 جلب البيانات", callback_data="fetch")],
+        [InlineKeyboardButton(text="➕ إضافة رقم للموقع", callback_data="add_to_site")],
+        [InlineKeyboardButton(text="⚙️ إعدادات الربط", callback_data="settings")]
+    ])
+
 @dp.message(Command("start"))
 async def start(message: types.Message):
-    kb = [
-        [types.KeyboardButton(text="احصل على رقم 📲")],
-        [types.KeyboardButton(text="الرصيد 💰")]
-    ]
-    markup = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-    await message.answer("مرحباً بك في نظام التفعيل الرقمي!", reply_markup=markup)
+    await message.answer("أهلاً بك، تم ربط البوت بموقعك بنجاح! اختر إجراءً:", reply_markup=get_full_menu())
 
-@dp.message(F.text == "احصل على رقم 📲")
-async def get_number(message: types.Message):
-    await message.answer("جاري البحث عن رقم متاح في المخزون...")
+# التعامل مع إضافة رقم
+@dp.callback_query(F.data == "add_to_site")
+async def ask_for_number(callback: types.CallbackQuery):
+    await callback.message.answer("أرسل الرقم الآن وسأقوم برفعه للموقع فوراً:")
+    await callback.answer()
 
-# --- 4. تشغيل البوت ---
+@dp.message(F.text.isdigit())
+async def process_number(message: types.Message):
+    await message.answer(f"جاري رفع الرقم {message.text} إلى قاعدة بيانات موقعك... 🔄")
+    success = await send_to_website(message.text)
+    if success:
+        await message.answer("✅ تم إضافة الرقم بنجاح إلى الموقع!")
+    else:
+        await message.answer("❌ حدث خطأ في الاتصال بالموقع، تأكد من الرابط.")
+
 async def main():
-    logging.basicConfig(level=logging.INFO)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())
