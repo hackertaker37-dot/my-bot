@@ -1,39 +1,49 @@
+import os
 import asyncio
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
-# التوكن الذي أرسلته (احرص على تغييره فوراً!)
-TOKEN = "8886084382:AAEcFhXXRlypOcDFl19z-lGQLqxEq67Vejc"
-
+# إعدادات البوت
+TOKEN = os.getenv("8886084382:AAEcFhXXRlypOcDFl19z-lGQLqxEq67Vejc")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- القائمة الشاملة ---
-def get_full_menu():
-    buttons = [
-        [InlineKeyboardButton(text="📱 جلب البيانات", callback_data="fetch")],
-        [InlineKeyboardButton(text="➕ إضافة رقم للموقع", callback_data="add_to_site")],
-        [InlineKeyboardButton(text="⚙️ إعدادات", callback_data="settings")]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+# إعداد الربط مع Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# ملاحظة: تأكد أن ملف service_account.json موجود في نفس مجلد البوت
+creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+client = gspread.authorize(creds)
+sheet = client.open("MyNumbersBot").sheet1 # استبدل MyNumbersBot باسم ملفك
 
+# اللغات
+LANGS = {
+    "ar": {"get": "📱 جلب رقم", "add": "➕ إضافة رقم", "welcome": "أهلاً بك في نظام الأرقام!"},
+    "en": {"get": "📱 Get Number", "add": "➕ Add Number", "welcome": "Welcome to Pro OTP System!"}
+}
+
+# كيبورد اللغات
 @dp.message(Command("start"))
 async def start(message: types.Message):
-    await message.answer("أهلاً بك! أنا بوتك الرسمي. اختر خدمة:", reply_markup=get_full_menu())
+    kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="العربية 🇸🇦"), KeyboardButton(text="English 🇺🇸")]], resize_keyboard=True)
+    await message.answer("اختر لغتك / Choose your language:", reply_markup=kb)
 
-@dp.callback_query(F.data == "fetch")
-async def fetch_data(callback: types.CallbackQuery):
-    await callback.message.answer("جاري جلب البيانات من الموقع... 🔄")
-    await callback.answer()
+# تفعيل الخدمة بعد اختيار اللغة
+@dp.message(F.text.in_(["العربية 🇸🇦", "English 🇺🇸"]))
+async def set_lang(message: types.Message):
+    lang = "ar" if "العربية" in message.text else "en"
+    kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=LANGS[lang]["get"]), KeyboardButton(text=LANGS[lang]["add"])]], resize_keyboard=True)
+    await message.answer(LANGS[lang]["welcome"], reply_markup=kb)
 
-@dp.callback_query(F.data == "add_to_site")
-async def add_number(callback: types.CallbackQuery):
-    await callback.message.answer("أرسل الرقم الآن لإضافته للموقع:")
-    await callback.answer()
+# إضافة رقم لقاعدة البيانات
+@dp.message(F.text.regexp(r'\d{10,}')) # أي رقم يتكون من 10 خانات فأكثر
+async def save_number(message: types.Message):
+    sheet.append_row([message.text, "Available", "None"])
+    await message.answer(f"✅ تم إضافة الرقم {message.text} بنجاح إلى قاعدة البيانات.")
 
 async def main():
-    print("البوت يعمل الآن...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
