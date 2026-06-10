@@ -35,7 +35,7 @@ REFRESH_INTERVAL = 2 # سرعة تحديث الأكواد بالثواني
 # 🔒 نظام تشفير المصادر (Encrypted Sources)
 # ---------------------------------------------------------
 #البوت ما تناخس في حاجه انتا ما عارفها شنو يا جعبه 
-_E_SITE_URL = "aHR0cHM6Ly9pbmZpbml0eS-zbXMudmVyY2VsLmFwcA==" # رابط الموقع المصدر مشفر
+_E_SITE_URL = "aHR0cHM6Ly9pbmZpbml0eS1zbXMudmVyY2VsLmFwcA==" # رابط الموقع المصدر مشفر
 _E_NUMBERS_PATH = "L251bWJlcnM=" #ما تناخس
 _E_GET_BTN_TEXT = "R0VUIDMgTlVNQkVSUw==" # ما تناخس
 
@@ -177,13 +177,13 @@ def back_btn(cb="home"):
 # 🌐 وظيفة الجلب المباشر (Live Fetch)
 # ======================
 def live_fetch_new_numbers(country_name):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=1920,1080")
+    options = Options()
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--headless")
+    options.add_argument("--window-size=1920,1080")
     
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(options=options)
     try:
         driver.get(NUMBERS_URL)
         wait = WebDriverWait(driver, 20)
