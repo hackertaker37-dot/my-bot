@@ -108,13 +108,13 @@ def get_bot_image():
     return img if img else None
 
 # ======================
-# 🛡️ نظام الاشتراك الإجباري (تم الإلغاء)
+# 🛡️ نظام الاشتراك الإجباري (تم الإلغاء تماماً)
 # ======================
 def check_sub(user_id):
-    return True
+    return True # تم تصفير الفحص
 
 def force_sub_markup():
-    return None
+    return None # تم إغلاق أي أزرار اشتراك
 
 # ======================
 # 🖼️ دالة التحديث الذكي (Smart Edit)
@@ -328,12 +328,8 @@ def callback_handler(call):
     uid = call.from_user.id
     cid = call.message.chat.id
     data = call.data
-    if data == "check_sub":
-        if check_sub(uid):
-            bot.answer_callback_query(call.id, f"✅ تم التحقق.")
-            show_home(cid, uid)
-        else: bot.answer_callback_query(call.id, f"❌ لم تشترك بعد!", show_alert=True)
-    elif data == "home": show_home(cid, uid)
+    # تم إلغاء كل ما يخص القناة من هنا
+    if data == "home": show_home(cid, uid)
     elif data == "quick_countries":
         countries = [
             {"name": "Vietnam", "flag": "🇻🇳", "code": "84"},
