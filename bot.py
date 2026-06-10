@@ -45,7 +45,7 @@ IVASMS_DASHBOARD = {
 # ======================
 USERNAME = "hackertaker37@gmail.com" # ايميلك هنا يا بطل
 PASSWORD = "011399@ZZzz" # باسوردك هنا يا غالي
-BOT_TOKEN = "8886084382:AAEcFhXXRlypOcDFl19z-lGQLqxEq67Vejc" # التوكن الجبتو من بوت فاذر حطو هنا
+BOT_TOKEN = "8886084382:AAHiJN_SXP415oC_ojPpMTRwGNKFPtOruw8" # التوكن الجبتو من بوت فاذر حطو هنا
 CHAT_IDS = [
     "-1003789271722", # ايدي القروب البيترسل فيهو الكود يا زول
 ]
