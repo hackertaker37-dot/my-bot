@@ -108,13 +108,23 @@ def get_bot_image():
     return img if img else None
 
 # ======================
-# 🛡️ نظام الاشتراك الإجباري (تم الإلغاء تماماً)
+# 🛡️ نظام الاشتراك الإجباري
 # ======================
 def check_sub(user_id):
-    return True # تم تصفير الفحص
+    channel = get_setting('force_channel')
+    if not channel: return True
+    try:
+        member = bot.get_chat_member(channel, user_id)
+        return member.status in ['member', 'administrator', 'creator']
+    except: return True
 
 def force_sub_markup():
-    return None # تم إغلاق أي أزرار اشتراك
+    channel = get_setting('force_channel')
+    link = get_setting('channel_link', 'https://t.me/ramosb')
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(f"📢 اشترك في القناة", url=link))
+    markup.add(types.InlineKeyboardButton(f"✅ تم الاشتراك", callback_data="check_sub"))
+    return markup
 
 # ======================
 # 🖼️ دالة التحديث الذكي (Smart Edit)
@@ -221,24 +231,15 @@ def scrape_all_otps():
     otps = []
     headers = {'User-Agent': 'Mozilla/5.0'}
     
-    # 1. جلب كافة سجلات البث المباشر (Full Live Stream History)
     try:
         response = requests.get(SITE_URL, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # سحب النص بالكامل مع فواصل واضحة
         page_text = soup.get_text(separator='|')
-        
-        # نستخدم Regex مطور للبحث عن السجلات من الأعلى للأسفل
-        # يبحث عن: (علم | خدمة | دولة | رقم)
         pattern = r"(?P<flag>[\U0001F1E6-\U0001F1FF]{2})\|(?P<service>[^|]+)\|(?P<country>[^|]+)\|[^|]+\|(?P<number>\d+INFINITY\d+|\d+)"
         matches = list(re.finditer(pattern, page_text))
-        
-        # نأخذ جميع النتائج (الجديدة في الأعلى والقديمة في الأسفل)
         for match in matches:
             service_raw = match.group("service").strip()
             service_tag = "#" + re.sub(r'\W+', '', service_raw).upper()[:10]
-            
             otps.append({
                 "flag": match.group("flag"),
                 "service": service_tag,
@@ -248,16 +249,12 @@ def scrape_all_otps():
             })
     except: pass
 
-    # 2. جلب كافة سجلات بنك الأرقام (Bank Numbers History)
     try:
         response_bank = requests.get(NUMBERS_URL, headers=headers, timeout=10)
         soup_bank = BeautifulSoup(response_bank.text, 'html.parser')
         bank_text = soup_bank.get_text(separator='|')
-        
-        # سحب كافة الأرقام والأكواد المتوفرة في بنك الأرقام
         bank_pattern = r"(?P<number>\d+INFINITY\d+|\d+)\|(?P<sms>\d{4,8})"
         bank_matches = list(re.finditer(bank_pattern, bank_text))
-        
         for match in bank_matches:
             otps.append({
                 "flag": "🏦",
@@ -267,7 +264,6 @@ def scrape_all_otps():
                 "sms": f"🎁 كود بنك الأرقام: {match.group('sms')}"
             })
     except: pass
-    
     return otps
 
 def mask_number(number):
@@ -298,14 +294,10 @@ def show_home(cid, uid):
     sudan_flag = get_custom_emoji(EMOJI_SUDAN, "🇸🇩")
     rocket = get_custom_emoji(EMOJI_ROCKET, "🚀")
     star = get_custom_emoji(EMOJI_STAR, "✨")
-    
-    text = (
-        f"{sudan_flag} مرحباً بك في بوت <b>تايتنز</b> سيد بوتات الأرقام\n\n"
-        f"{rocket} أول بوت سوداني مجاني، صنع سوداني متكامل.\n"
-        f"{star} ميزاتنا: سرعة، أمان، ودعم كامل لجميع التطبيقات.\n\n"
-        f"استخدم الأزرار أدناه للتحكم في البوت ما تخليك دنقلاوي."
-    )
-    
+    text = (f"{sudan_flag} مرحباً بك في بوت <b>تايتنز</b> سيد بوتات الأرقام\n\n"
+            f"{rocket} أول بوت سوداني مجاني، صنع سوداني متكامل.\n"
+            f"{star} ميزاتنا: سرعة، أمان، ودعم كامل لجميع التطبيقات.\n\n"
+            f"استخدم الأزرار أدناه للتحكم في البوت ما تخليك دنقلاوي.")
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f"🌍 طلب رقم حقيقي (Live)", callback_data="quick_countries"))
     if uid in ADMIN_IDS:
@@ -328,39 +320,34 @@ def callback_handler(call):
     uid = call.from_user.id
     cid = call.message.chat.id
     data = call.data
-    # تم إلغاء كل ما يخص القناة من هنا
-    if data == "home": show_home(cid, uid)
+    if data == "check_sub":
+        if check_sub(uid):
+            bot.answer_callback_query(call.id, f"✅ تم التحقق.")
+            show_home(cid, uid)
+        else: bot.answer_callback_query(call.id, f"❌ لم تشترك بعد!", show_alert=True)
+    elif data == "home": show_home(cid, uid)
     elif data == "quick_countries":
-        countries = [
-            {"name": "Vietnam", "flag": "🇻🇳", "code": "84"},
-            {"name": "Zimbabwe", "flag": "🇿🇼", "code": "263"},
-            {"name": "Ecuador", "flag": "🇪🇨", "code": "593"},
-            {"name": "Germany", "flag": "🇩🇪", "code": "49"}
-        ]
+        countries = [{"name": "Vietnam", "flag": "🇻🇳", "code": "84"}, {"name": "Zimbabwe", "flag": "🇿🇼", "code": "263"}, {"name": "Ecuador", "flag": "🇪🇨", "code": "593"}, {"name": "Germany", "flag": "🇩🇪", "code": "49"}]
         markup = types.InlineKeyboardMarkup(row_width=2)
         for c in countries:
             markup.add(types.InlineKeyboardButton(f"{c['flag']} {c['name']}", callback_data=f"gen_{c['name']}_{c['flag']}"))
         markup.add(back_btn())
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "🌍")
-        smart_edit(cid, uid, f"{emoji} اختر الدولة:", markup)
+        smart_edit(cid, uid, f"🌍 اختر الدولة:", markup)
     elif data.startswith("gen_"):
         _, name, flag = data.split("_")
         bot.answer_callback_query(call.id, f"⏳ جاري جلب رقم لـ {name}...")
         next_num = assign_fresh_number(uid, name)
         if not next_num:
-            emoji_err = get_custom_emoji(EMOJI_DEFAULT, "❌")
-            bot.send_message(cid, f"{emoji_err} عذراً، فشل جلب رقم لـ {name} حالياً.")
+            bot.send_message(cid, f"❌ عذراً، فشل جلب رقم لـ {name} حالياً.")
             return
-        emoji_ok = get_custom_emoji(EMOJI_DEFAULT, "✅")
-        res_msg = f"{emoji_ok} تم جلب رقم جديد من {flag} {name}!\n\n📱 الرقم: <code>+{next_num}</code>\n\n⏳ البوت يراقب الأكواد الآن..."
+        res_msg = f"✅ تم جلب رقم جديد من {flag} {name}!\n\n📱 الرقم: <code>+{next_num}</code>"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🔄 جلب رقم آخر", callback_data=f"gen_{name}_{flag}"))
         markup.add(back_btn("quick_countries"))
         smart_edit(cid, uid, res_msg, markup)
     elif data == "admin_panel" and uid in ADMIN_IDS: show_admin_panel(cid, uid)
     elif data == "adm_setimg":
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "🖼️")
-        smart_edit(cid, uid, f"{emoji} أرسل الصورة:", types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_input")))
+        smart_edit(cid, uid, f"🖼️ أرسل الصورة:", types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_input")))
         set_pending(uid, "set_image")
     elif data == "adm_delimg":
         set_setting('bot_image', '')
@@ -373,8 +360,7 @@ def callback_handler(call):
             s = conn.execute("SELECT COUNT(*) FROM sent_numbers").fetchone()[0]
         bot.answer_callback_query(call.id, f"👤 المستخدمين: {u}\n📱 الأرقام: {s}", show_alert=True)
     elif data == "adm_broadcast":
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "✉️")
-        smart_edit(cid, uid, f"{emoji} أرسل نص الإذاعة:", types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_input")))
+        smart_edit(cid, uid, f"✉️ أرسل نص الإذاعة:", types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_input")))
         set_pending(uid, "broadcast")
     elif data == "cancel_input":
         with get_db() as conn: conn.execute("DELETE FROM pending_inputs WHERE user_id=?", (uid,))
@@ -398,30 +384,21 @@ def handle_inputs(msg):
         with get_db() as conn: 
             conn.execute("UPDATE users SET has_image=1 WHERE user_id=?", (uid,))
             conn.execute("DELETE FROM pending_inputs WHERE user_id=?", (uid,))
-        emoji = get_custom_emoji(EMOJI_DEFAULT, "✅")
-        bot.reply_to(msg, f"{emoji} تم تعيين الصورة")
+        bot.reply_to(msg, f"✅ تم تعيين الصورة")
         show_home(cid, uid)
     elif action == "broadcast" and msg.text:
         with get_db() as conn:
             users = conn.execute("SELECT user_id FROM users").fetchall()
             conn.execute("DELETE FROM pending_inputs WHERE user_id=?", (uid,))
-        emoji_wait = get_custom_emoji(EMOJI_DEFAULT, "⏳")
-        bot.reply_to(msg, f"{emoji_wait} جاري الإذاعة...")
+        bot.reply_to(msg, f"⏳ جاري الإذاعة...")
         count = 0
-        emoji_msg = get_custom_emoji(EMOJI_DEFAULT, "📢")
-        broadcast_text = f"{emoji_msg} {msg.text}"
         for u in users:
-            try: bot.send_message(u[0], broadcast_text); count += 1
+            try: bot.send_message(u[0], msg.text); count += 1
             except: pass
-        emoji_done = get_custom_emoji(EMOJI_DEFAULT, "✅")
-        bot.send_message(cid, f"{emoji_done} تم إرسال الإذاعة لـ {count} مستخدم.")
+        bot.send_message(cid, f"✅ تم إرسال الإذاعة لـ {count} مستخدم.")
         show_admin_panel(cid, uid)
 
-# ======================
-# 🔄 حلقة المراقبة الشاملة (Background Full Monitor)
-# ======================
 def live_otp_stream():
-    """سكريبت يعمل في الخلفية لسحب كافة الأكواد (الجديدة والقديمة) وتوزيعها"""
     while True:
         try:
             conn = sqlite3.connect(DB_PATH)
@@ -429,40 +406,28 @@ def live_otp_stream():
             c.execute("SELECT number, user_id FROM my_numbers")
             watched_data = {row[0]: row[1] for row in c.fetchall()}
             conn.close()
-            
             current_otps = scrape_all_otps()
-            
             for otp in current_otps:
                 otp_key = f"{otp['number']}_{otp['service']}_{otp['sms']}"
-                
                 conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
                 c.execute("SELECT 1 FROM sent_otps WHERE otp_key = ?", (otp_key,))
-                
                 if not c.fetchone():
-                    msg_group = format_otp_message(otp, is_private=False)
                     for chat_id in CHAT_IDS:
-                        try: bot.send_message(chat_id, msg_group)
+                        try: bot.send_message(chat_id, format_otp_message(otp))
                         except: pass
-                    
                     clean_site_num = otp['number'].replace("INFINITY", "")
                     for watched_num, user_id in watched_data.items():
                         clean_watched = watched_num.replace("INFINITY", "")
                         if clean_site_num == clean_watched or (len(clean_site_num) > 5 and clean_site_num in clean_watched):
-                            try: bot.send_message(user_id, format_otp_message(otp, is_private=True))
+                            try: bot.send_message(user_id, format_otp_message(otp, True))
                             except: pass
-                    
                     c.execute("INSERT INTO sent_otps VALUES (?)", (otp_key,))
                     conn.commit()
                 conn.close()
-            
             time.sleep(REFRESH_INTERVAL)
         except: time.sleep(5)
 
-# ======================
-# 🏁 تشغيل البوت
-# ======================
 if __name__ == "__main__":
     threading.Thread(target=live_otp_stream, daemon=True).start()
-    print("Bot v30 (Sudan Secure Edition) is running with Encrypted Sources...")
     bot.polling(none_stop=True)
