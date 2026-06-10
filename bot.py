@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 # ======================
-# 🖥️ إعداد اللوحة الوحيدة  ( 𝐈𝐕𝐀 𝐒𝐌𝐒 )   (𝘿𝙀𝙑𝙀𝙇𝙊𝙋𝙀𝙍 𝘽𝙔 : 𝙍𝘼𝙈𝙊𝙎 ) 𝙏𝙇𝙀: @ramosb
+# 🖥️ إعداد اللوحة الوحيدة  (𝐼𝑉𝐴 𝑆𝑀𝑆)   (𝐷𝐸𝑉𝐸𝐿𝑂𝑃𝐸𝑅 𝐵𝑌: ℎ𝑎𝑐𝑘𝑒𝑟 𝑇𝑎𝑘𝑒𝑟 ) 𝑇𝐿𝐸: @ramosb
 # يا زول هنا بنجهز بيانات الموقع البنسحب منه الرسايل
 # ======================
 
@@ -30,7 +30,7 @@ IVASMS_DASHBOARD = {
     "login_url": "https://ivas.tempnum.qzz.io/login",
     "base_url": "https://ivas.tempnum.qzz.io",
     "sms_api_endpoint": "https://ivas.tempnum.qzz.io/portal/sms/received/getsms",
-    "username": "hackertaker37@gmail.com", # يا زول امسح الايميل ده واكتب حقك
+    "username": "bwt756183@gmail.com", # يا زول امسح الايميل ده واكتب حقك
     "password": "011399@ZZzz", # وهنا اكتب الباسورد حق الموقع يا حبيبنا
     "session": requests.Session(),
     "is_logged_in": False,
@@ -43,11 +43,11 @@ IVASMS_DASHBOARD = {
 # 🔧 إعدادات عامة (كما في الأصل)
 # الحاجات دي مهمة شديد، لو ما ظبطها البوت ما بيشتغل معاك يا حبيبنا
 # ======================
-USERNAME = "hackertaker37@gmail.com" # ايميلك هنا يا بطل
+USERNAME = "bwt756183@gmail.com" # ايميلك هنا يا بطل
 PASSWORD = "011399@ZZzz" # باسوردك هنا يا غالي
-BOT_TOKEN = "8886084382:AAHiJN_SXP415oC_ojPpMTRwGNKFPtOruw8" # التوكن الجبتو من بوت فاذر حطو هنا
+BOT_TOKEN = "8886084382:AAG2V6nZCgqxuwrPj7Vqx5Payv1MmmDvGhI" # التوكن الجبتو من بوت فاذر حطو هنا
 CHAT_IDS = [
-    "-1003789271722", # ايدي القروب البيترسل فيهو الكود يا زول
+    "-1003908016285", # ايدي القروب البيترسل فيهو الكود يا زول
 ]
 REFRESH_INTERVAL = 3
 TIMEOUT = 100
@@ -1951,4 +1951,4 @@ def run_bot():
 if __name__ == "__main__":
     threading.Thread(target=run_bot, daemon=True).start()
     main_loop()
-# تم التعديل بواسطة RAMOS باللغة السودانية الأصلية
+# تم التعديل بواسطة ℎ𝑎𝑐𝑘𝑒𝑟 𝑇𝑎𝑘𝑒𝑟 باللغة السودانية الأصلية
