@@ -34,10 +34,10 @@ REFRESH_INTERVAL = 2 # سرعة تحديث الأكواد بالثواني
 # ---------------------------------------------------------
 # 🔒 نظام تشفير المصادر (Encrypted Sources)
 # ---------------------------------------------------------
-#البوت ما تناخس في حاجه انتا ما عارفها شنو يا جعبه 
-_E_SITE_URL = "aHR0cHM6Ly9pbmZpbml0eS-zbXMudmVyY2VsLmFwcA==" 
-_E_NUMBERS_PATH = "L251bWJlcnM="
-_E_GET_BTN_TEXT = "R0VUIDMgTlVNQkVSUw=="
+_E_SITE_URL = "aHR0cHM6Ly9pbmZpbml0eS1zbXMudmVyY2VsLmFwcA==" 
+_E_NUMBERS_PATH = "L251bWJlcnM=" 
+_E_GET_BTN_TEXT = "R0VUIDMgTlVNQkVSUw==" 
+FREE_PHONE_URL = "https://freephonenum.com/receive-sms"
 
 def _d(data):
     return base64.b64decode(data).decode('utf-8')
@@ -45,7 +45,6 @@ def _d(data):
 SITE_URL = _d(_E_SITE_URL)
 NUMBERS_URL = SITE_URL + _d(_E_NUMBERS_PATH)
 GET_BTN_TEXT = _d(_E_GET_BTN_TEXT)
-FREE_PHONE_URL = "https://freephonenum.com/receive-sms"
 
 # ---------------------------------------------------------
 # 🌟 إعدادات الرموز التعبيرية المميزة
@@ -94,13 +93,13 @@ def get_bot_image():
     return img if img else None
 
 # ======================
-# 🛡️ نظام الاشتراك (تم إلغاء القناة نهائياً)
+# 🛡️ نظام الاشتراك الإجباري (تم الإلغاء)
 # ======================
 def check_sub(user_id):
-    return True
+    return True # تم الإلغاء
 
 def force_sub_markup():
-    return None
+    return None # تم الإلغاء
 
 # ======================
 # 🖼️ دالة التحديث الذكي
@@ -158,7 +157,6 @@ def live_fetch_new_numbers(country_name):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--headless")
     options.add_argument("--window-size=1920,1080")
-    
     driver = webdriver.Chrome(options=options)
     try:
         driver.get(NUMBERS_URL)
@@ -200,13 +198,11 @@ def assign_fresh_number(user_id, country_name):
     return selected_number
 
 # ======================
-# 📡 سكريبت سحب الأكواد (مدمج الموقعين)
+# 📡 سكريبت سحب الأكواد (دمج الموقعين)
 # ======================
 def scrape_all_otps():
     otps = []
     headers = {'User-Agent': 'Mozilla/5.0'}
-    
-    # المصدر 1
     try:
         response = requests.get(SITE_URL, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -215,8 +211,6 @@ def scrape_all_otps():
         for match in re.finditer(pattern, page_text):
             otps.append({"flag": match.group("flag"), "service": "#INFINITY", "country": match.group("country").strip(), "number": match.group("number"), "sms": "🔓 متاح"})
     except: pass
-
-    # المصدر 2 (FreePhoneNum)
     try:
         res2 = requests.get(FREE_PHONE_URL, headers=headers, timeout=10)
         soup2 = BeautifulSoup(res2.text, 'html.parser')
@@ -231,7 +225,7 @@ def format_otp_message(otp, is_private=False):
     return f"{emoji} <b>بث مباشر:</b>\n\n{otp['flag']} <b>{otp['country']}</b>\n{otp['service']} <b>{masked_num}</b>\n\n<pre><code>{otp['sms']}</code></pre>\n\n<b>BY: 𝐑𝐀𝐌𝐎𝐒 (@ramosb)</b>"
 
 # ======================
-# 🤖 أوامر البوت
+# 🤖 الأوامر ولوحة التحكم
 # ======================
 @bot.message_handler(commands=['start'])
 def start(msg):
@@ -275,7 +269,7 @@ def callback_handler(call):
     elif data == "admin_panel" and uid in ADMIN_IDS: show_admin_panel(cid, uid)
     elif data == "adm_setimg": set_pending(uid, "set_image"); bot.send_message(cid, "🖼️ أرسل الصورة:")
     elif data == "adm_delimg": set_setting('bot_image', ''); show_admin_panel(cid, uid)
-    elif data == "adm_stats": bot.answer_callback_query(call.id, "📊 البوت يعمل بكامل طاقته", show_alert=True)
+    elif data == "adm_stats": bot.answer_callback_query(call.id, "📊 البوت يعمل", show_alert=True)
     elif data == "adm_broadcast": set_pending(uid, "broadcast"); bot.send_message(cid, "✉️ أرسل نص الإذاعة:")
     elif data == "cancel_input": show_home(cid, uid)
 
@@ -305,9 +299,14 @@ def handle_inputs(msg):
         bot.send_message(cid, "✅ تم الإرسال")
         show_admin_panel(cid, uid)
 
-# ======================
-# 🏁 تشغيل البوت
-# ======================
+def live_otp_stream():
+    while True:
+        try:
+            current_otps = scrape_all_otps()
+            # (منطق التوزيع هنا)
+            time.sleep(REFRESH_INTERVAL)
+        except: time.sleep(5)
+
 if __name__ == "__main__":
     threading.Thread(target=live_otp_stream, daemon=True).start()
     bot.polling(none_stop=True)
