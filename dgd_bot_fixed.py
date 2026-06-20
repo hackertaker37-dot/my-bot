@@ -1,5 +1,5 @@
 # ======================================================================================
-# بوت DGDNetwork - النسخة النهائية (صالحة للاستضافة المجانية)
+# بوت DGDNetwork - النسخة النهائية (مع خادم ويب للاستضافة)
 # المطور: hacker Taker
 # ======================================================================================
 
@@ -17,6 +17,7 @@ import logging
 from datetime import datetime, timedelta
 from telebot import types
 import telebot
+from flask import Flask, jsonify
 
 # ======================================================================================
 # إعدادات التسجيل
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = "8686995713:AAFJhfIolTVU2kmVf4XffASJASQb5iccK9Y"
 CHAT_IDS = ["-1003789271722"]
 ADMIN_IDS = [8728019066, 8972941677]
-DB_PATH = os.environ.get("DB_PATH", "dgd_bot.db")  # استخدم متغير البيئة إن وجد
+DB_PATH = os.environ.get("DB_PATH", "dgd_bot.db")
 
 # ======================================================================================
 # مفتاح API والروابط
@@ -965,7 +966,7 @@ def handle_country(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("change_"))
 def change_number(call):
     try:
-        user_id = call.from.user.id
+        user_id = call.from_user.id
         cc = call.data.split("_")[1]
         if is_banned(user_id) or not force_sub_check(user_id):
             return
@@ -1558,7 +1559,7 @@ def add_private_combo_step2(message):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("select_private_"))
 def select_private_combo(call):
-    if not is_admin(call.from.user.id): return
+    if not is_admin(call.from_user.id): return
     parts = call.data.split("_")
     uid = int(parts[2])
     country_code = parts[3]
@@ -1630,6 +1631,23 @@ def confirm_clear_db(call):
         logger.error(f"confirm_clear_db error: {e}")
 
 # ======================================================================================
+# خادم ويب Flask لاستقبال طلبات health check
+# ======================================================================================
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return jsonify({"status": "running", "bot": "DGDNetwork OTP Bot"})
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok", "uptime": time.time()})
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# ======================================================================================
 # تشغيل البوت والحلقة الرئيسية
 # ======================================================================================
 def run_bot():
@@ -1642,6 +1660,14 @@ def run_bot():
             time.sleep(5)
 
 if __name__ == "__main__":
+    # تشغيل خادم الويب في خيط منفصل
+    web_thread = threading.Thread(target=run_web_server, daemon=True)
+    web_thread.start()
+    logger.info("✅ خادم الويب يعمل على المنفذ 8080")
+    
+    # تشغيل الحلقة الرئيسية للبوت في خيط آخر
     main_thread = threading.Thread(target=main_loop, daemon=True)
     main_thread.start()
+    
+    # تشغيل البوت (polling)
     run_bot()
