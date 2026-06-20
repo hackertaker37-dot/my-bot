@@ -1,5 +1,5 @@
 # ======================================================================================
-# بوت DGDNetwork - النسخة النهائية (مع خادم ويب للاستضافة)
+# بوت DGDNetwork - النسخة النهائية لـ Render
 # المطور: hacker Taker
 # ======================================================================================
 
@@ -30,9 +30,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ======================================================================================
-# الإعدادات الأساسية (استخدم متغيرات البيئة في الإنتاج)
+# الإعدادات الأساسية
 # ======================================================================================
-BOT_TOKEN = "8686995713:AAFJhfIolTVU2kmVf4XffASJASQb5iccK9Y"
+BOT_TOKEN = "8686995713:AAHvUhE7fHLsrTHKuIFHSV2YUpiAU4I6bgw"
 CHAT_IDS = ["-1003789271722"]
 ADMIN_IDS = [8728019066, 8972941677]
 DB_PATH = os.environ.get("DB_PATH", "dgd_bot.db")
@@ -41,33 +41,7 @@ DB_PATH = os.environ.get("DB_PATH", "dgd_bot.db")
 # مفتاح API والروابط
 # ======================================================================================
 DGD_API_KEY = "dgd_e2a755bfa8b37b06728b01c6178d4799780e7d62b6696c8e"
-
-POSSIBLE_BASE_URLS = [
-    "https://dgddigital.com",
-    "http://dgddigital.com",
-    "https://dgd.dgddigital.com",
-    "http://dgd.dgddigital.com",
-]
-
-DGD_BASE_URL = None
-
-def find_working_base_url():
-    global DGD_BASE_URL
-    for base_url in POSSIBLE_BASE_URLS:
-        test_url = f"{base_url}/api/v1/user/getnum"
-        try:
-            resp = requests.post(test_url, json={"range": "4473845XXX"}, timeout=5)
-            if resp.status_code != 404:
-                logger.info(f"✅ الرابط الصحيح: {base_url}")
-                DGD_BASE_URL = base_url
-                return True
-        except:
-            continue
-    logger.error("❌ لم يتم العثور على رابط صحيح!")
-    DGD_BASE_URL = "https://dgddigital.com"
-    return False
-
-find_working_base_url()
+DGD_BASE_URL = "https://dgddigital.com"
 
 # ======================================================================================
 # تعريف البوت
@@ -76,7 +50,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 user_states = {}
 
 # ======================================================================================
-# قائمة الدول المتاحة (من الصور)
+# قائمة الدول المتاحة
 # ======================================================================================
 AVAILABLE_COUNTRIES = {
     "223": ("مالي", "🇲🇱", ["223655XXX"]),
@@ -87,36 +61,10 @@ AVAILABLE_COUNTRIES = {
     "236": ("جمهورية أفريقيا الوسطى", "🇨🇫", ["23672XXX", "2367234XXX", "2367210XXX", "2367293XXX", "2367277XXX"]),
     "44": ("المملكة المتحدة", "🇬🇧", ["4473845XXX"]),
 }
-
 DEFAULT_RANGES = {code: ranges for code, (_, _, ranges) in AVAILABLE_COUNTRIES.items()}
 
 # ======================================================================================
-# دوال الإعدادات
-# ======================================================================================
-def get_setting(key):
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT value FROM bot_settings WHERE key=?", (key,))
-        row = c.fetchone()
-        conn.close()
-        return row[0] if row else None
-    except Exception as e:
-        logger.error(f"get_setting error: {e}")
-        return None
-
-def set_setting(key, value):
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("REPLACE INTO bot_settings (key, value) VALUES (?, ?)", (key, value))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        logger.error(f"set_setting error: {e}")
-
-# ======================================================================================
-# قاعدة البيانات
+# قاعدة البيانات (مبسطة)
 # ======================================================================================
 def init_db():
     try:
@@ -174,7 +122,6 @@ def init_db():
             last_check TEXT
         )''')
         c.execute("INSERT OR IGNORE INTO bot_settings (key, value) VALUES ('bot_active', '1')")
-        c.execute("INSERT OR IGNORE INTO bot_settings (key, value) VALUES ('welcome_photo', '')")
         conn.commit()
         conn.close()
         logger.info("✅ قاعدة البيانات جاهزة")
@@ -184,7 +131,7 @@ def init_db():
 init_db()
 
 # ======================================================================================
-# دوال إدارة المستخدمين (محسنة)
+# دوال أساسية (مختصرة)
 # ======================================================================================
 def get_user(user_id):
     try:
@@ -194,8 +141,7 @@ def get_user(user_id):
         row = c.fetchone()
         conn.close()
         return row
-    except Exception as e:
-        logger.error(f"get_user error: {e}")
+    except:
         return None
 
 def save_user(user_id, username="", first_name="", last_name="", country_code=None, assigned_number=None, private_combo_country=None):
@@ -215,8 +161,8 @@ def save_user(user_id, username="", first_name="", last_name="", country_code=No
                   (user_id, username, first_name, last_name, country_code, assigned_number, user_id, private_combo_country))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"save_user error: {e}")
+    except:
+        pass
 
 def is_banned(user_id):
     user = get_user(user_id)
@@ -230,32 +176,8 @@ def get_all_users():
         users = [r[0] for r in c.fetchall()]
         conn.close()
         return users
-    except Exception as e:
-        logger.error(f"get_all_users error: {e}")
+    except:
         return []
-
-def ban_user(user_id):
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("UPDATE users SET is_banned=1 WHERE user_id=?", (user_id,))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        logger.error(f"ban_user error: {e}")
-
-def unban_user(user_id):
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("UPDATE users SET is_banned=0 WHERE user_id=?", (user_id,))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        logger.error(f"unban_user error: {e}")
-
-def get_user_info(user_id):
-    return get_user(user_id)
 
 def get_combo_range(country_code, combo_index=1, user_id=None):
     try:
@@ -271,8 +193,7 @@ def get_combo_range(country_code, combo_index=1, user_id=None):
         row = c.fetchone()
         conn.close()
         return row[0] if row else None
-    except Exception as e:
-        logger.error(f"get_combo_range error: {e}")
+    except:
         return None
 
 def get_all_combos():
@@ -283,8 +204,7 @@ def get_all_combos():
         rows = c.fetchall()
         conn.close()
         return rows
-    except Exception as e:
-        logger.error(f"get_all_combos error: {e}")
+    except:
         return []
 
 def save_combo(country_code, range_str, user_id=None):
@@ -302,8 +222,8 @@ def save_combo(country_code, range_str, user_id=None):
                       (country_code, next_idx, range_str))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"save_combo error: {e}")
+    except:
+        pass
 
 def delete_combo(country_code, combo_index=None, user_id=None):
     try:
@@ -318,12 +238,10 @@ def delete_combo(country_code, combo_index=None, user_id=None):
         conn.commit()
         conn.close()
         return True
-    except Exception as e:
-        logger.error(f"delete_combo error: {e}")
+    except:
         return False
 
 def assign_number_to_user(user_id, number):
-    """تعيين رقم للمستخدم مع التنظيف"""
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -331,14 +249,11 @@ def assign_number_to_user(user_id, number):
         c.execute("UPDATE users SET assigned_number=? WHERE user_id=?", (clean_num, user_id))
         conn.commit()
         conn.close()
-        logger.info(f"✅ تم تعيين الرقم {clean_num} للمستخدم {user_id}")
         return clean_num
-    except Exception as e:
-        logger.error(f"assign_number_to_user error: {e}")
+    except:
         return None
 
 def get_user_by_number(number):
-    """البحث عن مستخدم برقم معين (مع تجاهل + والمسافات)"""
     if not number:
         return None
     clean_num = re.sub(r'\D', '', str(number))
@@ -350,14 +265,8 @@ def get_user_by_number(number):
         c.execute("SELECT user_id FROM users WHERE assigned_number = ?", (clean_num,))
         row = c.fetchone()
         conn.close()
-        if row:
-            logger.info(f"✅ تم العثور على المستخدم {row[0]} للرقم {clean_num}")
-            return row[0]
-        else:
-            logger.warning(f"⚠️ لم يتم العثور على مستخدم للرقم {clean_num}")
-            return None
-    except Exception as e:
-        logger.error(f"get_user_by_number error: {e}")
+        return row[0] if row else None
+    except:
         return None
 
 def release_number(number):
@@ -369,8 +278,8 @@ def release_number(number):
         c.execute("UPDATE users SET assigned_number=NULL WHERE assigned_number=?", (number,))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"release_number error: {e}")
+    except:
+        pass
 
 def log_otp(number, otp, full_message, assigned_to=None):
     try:
@@ -380,8 +289,8 @@ def log_otp(number, otp, full_message, assigned_to=None):
                   (number, otp, full_message, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), assigned_to))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"log_otp error: {e}")
+    except:
+        pass
 
 def get_otp_logs():
     try:
@@ -391,8 +300,7 @@ def get_otp_logs():
         rows = c.fetchall()
         conn.close()
         return rows
-    except Exception as e:
-        logger.error(f"get_otp_logs error: {e}")
+    except:
         return []
 
 def is_maintenance_mode():
@@ -403,8 +311,7 @@ def is_maintenance_mode():
         row = c.fetchone()
         conn.close()
         return row is None or row[0] == "0"
-    except Exception as e:
-        logger.error(f"is_maintenance_mode error: {e}")
+    except:
         return False
 
 def set_maintenance_mode(status):
@@ -414,11 +321,11 @@ def set_maintenance_mode(status):
         c.execute("REPLACE INTO bot_settings (key, value) VALUES ('bot_active', ?)", ("1" if status else "0",))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"set_maintenance_mode error: {e}")
+    except:
+        pass
 
 # ======================================================================================
-# دوال الاشتراك الإجباري
+# الاشتراك الإجباري
 # ======================================================================================
 def get_all_force_sub_channels(enabled_only=True):
     try:
@@ -431,8 +338,7 @@ def get_all_force_sub_channels(enabled_only=True):
         rows = c.fetchall()
         conn.close()
         return rows
-    except Exception as e:
-        logger.error(f"get_all_force_sub_channels error: {e}")
+    except:
         return []
 
 def add_force_sub_channel(url, desc=""):
@@ -444,8 +350,7 @@ def add_force_sub_channel(url, desc=""):
         conn.commit()
         conn.close()
         return True
-    except Exception as e:
-        logger.error(f"add_force_sub_channel error: {e}")
+    except:
         return False
 
 def delete_force_sub_channel(channel_id):
@@ -457,8 +362,7 @@ def delete_force_sub_channel(channel_id):
         conn.commit()
         conn.close()
         return res
-    except Exception as e:
-        logger.error(f"delete_force_sub_channel error: {e}")
+    except:
         return False
 
 def toggle_force_sub_channel(channel_id):
@@ -468,8 +372,8 @@ def toggle_force_sub_channel(channel_id):
         c.execute("UPDATE force_sub_channels SET enabled = 1 - enabled WHERE id=?", (channel_id,))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"toggle_force_sub_channel error: {e}")
+    except:
+        pass
 
 def force_sub_check(user_id):
     channels = get_all_force_sub_channels(enabled_only=True)
@@ -486,8 +390,7 @@ def force_sub_check(user_id):
             member = bot.get_chat_member(ch, user_id)
             if member.status not in ["member", "administrator", "creator"]:
                 return False
-        except Exception as e:
-            logger.error(f"force_sub_check error for {url}: {e}")
+        except:
             return False
     return True
 
@@ -503,11 +406,9 @@ def force_sub_markup():
     return markup
 
 # ======================================================================================
-# دوال الاتصال بـ DGDNetwork API
+# دوال DGD API
 # ======================================================================================
 def dgd_get_number(range_str):
-    if not DGD_BASE_URL:
-        raise Exception("لم يتم العثور على رابط صحيح للـ API")
     url = f"{DGD_BASE_URL}/api/v1/user/getnum"
     headers = {"X-API-KEY": DGD_API_KEY, "Content-Type": "application/json", "Accept": "application/json"}
     payload = {"range": range_str, "is_national": False, "remove_plus": False}
@@ -526,8 +427,6 @@ def dgd_get_number(range_str):
         raise
 
 def dgd_check_number(phone):
-    if not DGD_BASE_URL:
-        raise Exception("لم يتم العثور على رابط صحيح للـ API")
     url = f"{DGD_BASE_URL}/api/v1/user/checknum"
     headers = {"X-API-KEY": DGD_API_KEY, "Accept": "application/json"}
     params = {"nomor": phone}
@@ -555,8 +454,8 @@ def add_active_number(number, country_code, combo_index, assigned_to=0):
                   (clean_num, country_code, combo_index, assigned_to, datetime.now().isoformat(), datetime.now().isoformat()))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"add_active_number error: {e}")
+    except:
+        pass
 
 def update_active_number(number, status=None, otp_code=None):
     try:
@@ -569,8 +468,8 @@ def update_active_number(number, status=None, otp_code=None):
             c.execute("UPDATE active_numbers SET status=?, last_check=? WHERE number=?", (status, datetime.now().isoformat(), clean_num))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"update_active_number error: {e}")
+    except:
+        pass
 
 def get_active_numbers():
     try:
@@ -580,8 +479,7 @@ def get_active_numbers():
         rows = c.fetchall()
         conn.close()
         return rows
-    except Exception as e:
-        logger.error(f"get_active_numbers error: {e}")
+    except:
         return []
 
 def remove_active_number(number):
@@ -591,8 +489,8 @@ def remove_active_number(number):
         c.execute("DELETE FROM active_numbers WHERE number=?", (number,))
         conn.commit()
         conn.close()
-    except Exception as e:
-        logger.error(f"remove_active_number error: {e}")
+    except:
+        pass
 
 # ======================================================================================
 # دوال معالجة النصوص
@@ -693,23 +591,13 @@ def format_message_user(number, sms):
 <b>كود {svc} {otp[:3]}-{otp[3:]} ؟</b>"""
 
 # ======================================================================================
-# دوال إرسال الـ OTP للمستخدم والجروب (محسنة)
+# إرسال OTP
 # ======================================================================================
-def delete_message_after_delay(chat_id, msg_id, delay=180):
-    time.sleep(delay)
-    try:
-        requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteMessage", data={"chat_id": chat_id, "message_id": msg_id})
-    except Exception as e:
-        logger.error(f"delete_message_after_delay error: {e}")
-
 def send_otp_to_user_and_group(date_str, number, sms):
     otp = extract_otp(sms)
     clean_num = re.sub(r'\D', '', str(number))
     user_id = get_user_by_number(clean_num)
     log_otp(clean_num, otp, sms, user_id)
-    
-    logger.info(f"🔍 البحث عن مستخدم للرقم: {number} (clean: {clean_num})")
-    logger.info(f"👤 المستخدم الموجود: {user_id}")
     
     if user_id:
         try:
@@ -725,7 +613,6 @@ def send_otp_to_user_and_group(date_str, number, sms):
     else:
         logger.warning(f"⚠️ لم يتم العثور على مستخدم للرقم {clean_num}")
     
-    # إرسال للمجموعات (دائماً)
     group_markup = types.InlineKeyboardMarkup()
     group_markup.row(
         types.InlineKeyboardButton("💬 𝕆𝕋ℙ 𝔾ℝ𝕆𝕌ℙ", url="https://t.me/numhj"),
@@ -746,7 +633,7 @@ def handle_copy_button(call):
     bot.answer_callback_query(call.id, f"✅ تم نسخ الكود: {otp_code}", show_alert=True)
 
 # ======================================================================================
-# دوال التشغيل التلقائي
+# التشغيل التلقائي
 # ======================================================================================
 def request_new_numbers():
     try:
@@ -764,10 +651,10 @@ def request_new_numbers():
                 new_number = dgd_get_number(range_str)
                 clean_num = re.sub(r'\D', '', new_number)
                 add_active_number(clean_num, country_code, combo_index, assigned_to=0)
-                logger.info(f"✅ طلب رقم جديد: {clean_num} من {country_code} (رينج: {range_str})")
+                logger.info(f"✅ طلب رقم جديد: {clean_num} من {country_code}")
                 time.sleep(1)
             except Exception as e:
-                logger.error(f"❌ فشل طلب رقم من {country_code}-{combo_index}: {e}")
+                logger.error(f"❌ فشل طلب رقم من {country_code}: {e}")
     except Exception as e:
         logger.error(f"request_new_numbers error: {e}")
 
@@ -799,23 +686,23 @@ def check_active_numbers():
         logger.error(f"check_active_numbers error: {e}")
 
 def main_loop():
-    logger.info("🚀 DGDNetwork Bot يعمل (تلقائي، سريع)")
+    logger.info("🚀 DGDNetwork Bot يعمل")
     last_request = 0
     while True:
         try:
             now = time.time()
-            if now - last_request >= 20:
+            if now - last_request >= 30:
                 request_new_numbers()
                 last_request = now
             check_active_numbers()
-            time.sleep(1)
+            time.sleep(2)
         except Exception as e:
             logger.error(f"❌ خطأ رئيسي: {e}")
             traceback.print_exc()
-            time.sleep(5)
+            time.sleep(10)
 
 # ======================================================================================
-# 🤖 بوت Telegram - الأوامر الأساسية (عربية فقط)
+# أوامر البوت
 # ======================================================================================
 def is_admin(user_id):
     return user_id in ADMIN_IDS
@@ -894,21 +781,7 @@ def send_welcome(message):
             return
         if not get_user(user_id):
             save_user(user_id, username=message.from_user.username or "", first_name=message.from_user.first_name or "")
-        
-        welcome_photo = get_setting("welcome_photo")
-        text = "🌍 <b>اختر الدولة للحصول على رقم:</b>"
-        markup = show_country_menu_get_markup(user_id)
-        
-        if welcome_photo:
-            try:
-                bot.send_photo(chat_id, welcome_photo, caption=text, parse_mode="HTML", reply_markup=markup)
-                bot.send_message(chat_id, "📱 استخدم الأزرار للتنقل:", reply_markup=main_keyboard(user_id))
-                return
-            except:
-                pass
-        
         show_country_menu(message)
-        
     except Exception as e:
         logger.error(f"send_welcome error: {e}")
 
@@ -943,9 +816,7 @@ def handle_country(call):
         except Exception as e:
             bot.answer_callback_query(call.id, f"❌ فشل جلب الرقم: {str(e)[:80]}", show_alert=True)
             return
-        
         clean_num = re.sub(r'\D', '', number)
-        
         old = get_user(user_id)
         if old and old[5]:
             release_number(old[5])
@@ -953,13 +824,11 @@ def handle_country(call):
         assign_number_to_user(user_id, clean_num)
         save_user(user_id, country_code=cc, assigned_number=clean_num)
         add_active_number(clean_num, cc, 1, assigned_to=user_id)
-        
         name_ar, flag = get_country_info(cc)
         msg = f"◈ الرقم: <code>+{clean_num}</code>\n◈ الدولة: {flag} {name_ar}\n◈ الحالة: ⏳ في انتظار OTP..."
         markup = show_number_actions(call, clean_num, cc)
         bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, parse_mode="HTML", reply_markup=markup)
         bot.answer_callback_query(call.id, "✅ تم التخصيص")
-        logger.info(f"✅ تم تخصيص الرقم {clean_num} للمستخدم {user_id}")
     except Exception as e:
         logger.error(f"handle_country error: {e}")
 
@@ -983,9 +852,7 @@ def change_number(call):
         except Exception as e:
             bot.answer_callback_query(call.id, f"❌ فشل: {str(e)[:80]}", show_alert=True)
             return
-        
         clean_num = re.sub(r'\D', '', number)
-        
         old = get_user(user_id)
         if old and old[5]:
             release_number(old[5])
@@ -993,13 +860,11 @@ def change_number(call):
         assign_number_to_user(user_id, clean_num)
         save_user(user_id, assigned_number=clean_num)
         add_active_number(clean_num, cc, 1, assigned_to=user_id)
-        
         name_ar, flag = get_country_info(cc)
         msg = f"◈ الرقم: <code>+{clean_num}</code>\n◈ الدولة: {flag} {name_ar}\n◈ الحالة: ⏳ في انتظار OTP..."
         markup = show_number_actions(call, clean_num, cc)
         bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, parse_mode="HTML", reply_markup=markup)
         bot.answer_callback_query(call.id, "✅ تم تغيير الرقم")
-        logger.info(f"✅ تم تغيير الرقم للمستخدم {user_id} إلى {clean_num}")
     except Exception as e:
         logger.error(f"change_number error: {e}")
 
@@ -1018,7 +883,7 @@ def back_to_start(call):
         logger.error(f"back_to_start error: {e}")
 
 # ======================================================================================
-# معالجات أزرار الكيبورد
+# أزرار الكيبورد
 # ======================================================================================
 @bot.message_handler(func=lambda msg: msg.text == "📱 الحصول على رقم")
 def get_number_menu(msg):
@@ -1057,9 +922,8 @@ def admin_panel_btn(msg):
         admin_panel(msg)
 
 # ======================================================================================
-# 🔐 لوحة تحكم المطور (Admin Panel)
+# لوحة تحكم المطور (مختصرة)
 # ======================================================================================
-
 def admin_main_menu():
     markup = types.InlineKeyboardMarkup()
     status_icon = "🟢" if not is_maintenance_mode() else "🔴"
@@ -1084,7 +948,6 @@ def admin_main_menu():
     )
     markup.row(
         types.InlineKeyboardButton("🔗 إشتراك", callback_data="admin_force_sub"),
-        types.InlineKeyboardButton("🖥️ اللوحات", callback_data="admin_dashboards"),
         types.InlineKeyboardButton("🔑 برايفت", callback_data="admin_private_combo")
     )
     markup.row(
@@ -1105,533 +968,401 @@ def admin_panel(call):
     try:
         if call.from_user.id in user_states:
             del user_states[call.from_user.id]
-            
         admin_text = (
-            "<b>❍─── <u>دي لوحتك هنا تتحكم في كل حاجة</u> ───❍</b>\n\n"
-            "<b>👋 مرحباً بك يا مطور في لوحة التحكم.</b>\n\n"
+            "<b>❍─── <u>لوحة التحكم</u> ───❍</b>\n\n"
+            "<b>👋 مرحباً بك يا مطور.</b>\n\n"
             "<b>⚙️ يمكنك التحكم في كامل وظائف البوت من هنا.</b>\n"
-            "<b>⚠️ تنبيه: أي تغيير في الإعدادات يؤثر على المستخدمين فوراً.</b>\n\n"
+            "<b>⚠️ أي تغيير يؤثر على المستخدمين فوراً.</b>\n\n"
             "<b>────────────────────</b>\n"
-            "<b>إحصائيات سريعة:</b>\n"
-            "<b>• حالة السيرفر: <u>Online</u> ✅</b>\n"
             f"<b>• الوقت الحالي: <u>{datetime.now().strftime('%H:%M')}</u></b>\n"
             "<b>────────────────────</b>"
         )
-        
         bot.answer_callback_query(call.id)
-        
         if call.message.content_type != 'text':
             try:
                 bot.delete_message(call.message.chat.id, call.message.message_id)
             except:
                 pass
-            bot.send_message(
-                chat_id=call.message.chat.id,
-                text=admin_text,
-                parse_mode="HTML",
-                reply_markup=admin_main_menu(),
-                disable_web_page_preview=True
-            )
+            bot.send_message(call.message.chat.id, admin_text, parse_mode="HTML", reply_markup=admin_main_menu())
         else:
-            bot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text=admin_text,
-                parse_mode="HTML",
-                reply_markup=admin_main_menu(),
-                disable_web_page_preview=True
-            )
+            bot.edit_message_text(admin_text, call.message.chat.id, call.message.message_id, parse_mode="HTML", reply_markup=admin_main_menu())
     except Exception as e:
         logger.error(f"Admin Panel Error: {e}")
-        try:
-            bot.send_message(call.message.chat.id, "🔐 لوحة التحكم", parse_mode="HTML", reply_markup=admin_main_menu())
-        except:
-            pass
 
-# ======================
-# 🖼️ ميزة تغيير صورة الترحيب
-# ======================
-@bot.callback_query_handler(func=lambda call: call.data == "admin_set_welcome_photo")
-def admin_set_welcome_photo(call):
-    if not is_admin(call.from_user.id): return
-    user_states[call.from_user.id] = "waiting_for_welcome_photo"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 إلغاء", callback_data="admin_panel"))
-    bot.edit_message_text("🖼️ حسناً، أرسل الآن الصورة التي تريد ظهورها مع رسالة الترحيب:", call.message.chat.id, call.message.message_id, reply_markup=markup)
-
-@bot.message_handler(content_types=['photo'], func=lambda msg: user_states.get(msg.from_user.id) == "waiting_for_welcome_photo")
-def handle_welcome_photo_upload(message):
-    if not is_admin(message.from_user.id): return
-    if message.from_user.id in user_states:
-        del user_states[message.from_user.id]
-    photo_id = message.photo[-1].file_id
-    set_setting("welcome_photo", photo_id)
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 العودة للوحة التحكم", callback_data="admin_panel"))
-    bot.send_message(message.chat.id, "✅ تم حفظ صورة الترحيب بنجاح!", reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_del_welcome_photo")
-def admin_del_welcome_photo(call):
-    if not is_admin(call.from_user.id): return
-    set_setting("welcome_photo", "")
-    bot.answer_callback_query(call.id, "🗑️ تم حذف صورة الترحيب.", show_alert=True)
-    admin_panel(call)
-
-# ======================
-# 📌 ميزة الاشتراك الإجباري في لوحة الإدارة
-# ======================
-@bot.callback_query_handler(func=lambda call: call.data == "admin_force_sub")
-def admin_force_sub(call):
-    if not is_admin(call.from_user.id):
-        return
-    channels = get_all_force_sub_channels(enabled_only=False)
-    text = f"⚙️ إدارة قنوات الاشتراك الإجباري:\nإجمالي القنوات: {len(channels)}\n──────────────────\n"
-    markup = types.InlineKeyboardMarkup()
-    for ch_id, url, desc in channels:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT enabled FROM force_sub_channels WHERE id=?", (ch_id,))
-        enabled = c.fetchone()[0]
-        conn.close()
-        status = "✅" if enabled else "❌"
-        btn_text = f"{status} {desc or url[:25]}"
-        markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"edit_force_ch_{ch_id}"))
-    markup.add(types.InlineKeyboardButton("➕ إضافة قناة", callback_data="add_force_ch"))
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
-
+# ======================================================================================
+# باقي دوال الأدمن (مختصرة)
+# ======================================================================================
 @bot.callback_query_handler(func=lambda call: call.data == "toggle_maintenance")
 def handle_maintenance_toggle(call):
     if not is_admin(call.from_user.id): return
     current_status = is_maintenance_mode()
     set_maintenance_mode(not current_status)
-    new_status_text = "🔓 تم فتح البوت للجميع" if current_status else "🔒 تم قفل البوت (وضع الصيانة)"
-    bot.answer_callback_query(call.id, new_status_text, show_alert=True)
-    bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=admin_main_menu())
+    bot.answer_callback_query(call.id, "🔓 تم فتح البوت" if current_status else "🔒 تم قفل البوت", show_alert=True)
+    admin_panel(call)
 
-# --- إضافة قناة جديدة ---
-@bot.callback_query_handler(func=lambda call: call.data == "add_force_ch")
-def add_force_ch_step1(call):
-    if not is_admin(call.from_user.id):
-        return
-    user_states[call.from_user.id] = "add_force_ch_url"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_force_sub"))
-    bot.edit_message_text("أرسل رابط القناة (مثل: https://t.me/xxx أو @xxx):", call.message.chat.id, call.message.message_id, reply_markup=markup)
-
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_force_ch_url")
-def add_force_ch_step2(message):
-    url = message.text.strip()
-    if not (url.startswith("@") or url.startswith("https://t.me/")):
-        bot.reply_to(message, "❌ رابط غير صالح! يجب أن يبدأ بـ @ أو https://t.me/")
-        return
-    user_states[message.from_user.id] = {"step": "add_force_ch_desc", "url": url}
-    bot.reply_to(message, "أدخل وصفًا للقناة (أو اترك فارغًا):")
-
-@bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), dict) and user_states[msg.from_user.id].get("step") == "add_force_ch_desc")
-def add_force_ch_step3(message):
-    data = user_states[message.from_user.id]
-    url = data["url"]
-    desc = message.text.strip()
-    if add_force_sub_channel(url, desc):
-        bot.reply_to(message, f"✅ تم إضافة القناة:\n{url}\nالوصف: {desc or '—'}")
-    else:
-        bot.reply_to(message, "❌ القناة موجودة مسبقًا!")
-    del user_states[message.from_user.id]
-
-# --- تعديل/حذف قناة فردية ---
-@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_force_ch_"))
-def edit_force_ch(call):
-    if not is_admin(call.from_user.id):
-        return
-    try:
-        ch_id = int(call.data.split("_", 3)[3])
-    except:
-        return
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT channel_url, description, enabled FROM force_sub_channels WHERE id=?", (ch_id,))
-    row = c.fetchone()
-    conn.close()
-    if not row:
-        bot.answer_callback_query(call.id, "❌ القناة غير موجودة!", show_alert=True)
-        return
-    url, desc, enabled = row
-    status = "مفعلة" if enabled else "معطلة"
-    text = f"🔧 إدارة القناة:\nالرابط: {url}\nالوصف: {desc or '—'}\nالحالة: {status}"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("✏️ تعديل الوصف", callback_data=f"edit_desc_{ch_id}"))
-    if enabled:
-        markup.add(types.InlineKeyboardButton("❌ تعطيل", callback_data=f"toggle_ch_{ch_id}"))
-    else:
-        markup.add(types.InlineKeyboardButton("✅ تفعيل", callback_data=f"toggle_ch_{ch_id}"))
-    markup.add(types.InlineKeyboardButton("🗑️ حذف", callback_data=f"del_ch_{ch_id}"))
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_force_sub"))
-    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("toggle_ch_"))
-def toggle_ch(call):
-    ch_id = int(call.data.split("_", 2)[2])
-    toggle_force_sub_channel(ch_id)
-    bot.answer_callback_query(call.id, "🔄 تم تغيير حالة القناة", show_alert=True)
-    admin_force_sub(call)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("del_ch_"))
-def del_ch(call):
-    ch_id = int(call.data.split("_", 2)[2])
-    if delete_force_sub_channel(ch_id):
-        bot.answer_callback_query(call.id, "🗑️ تم حذف القناة بنجاح", show_alert=True)
-    admin_force_sub(call)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_desc_"))
-def edit_desc_step1(call):
-    ch_id = int(call.data.split("_", 2)[2])
-    user_states[call.from_user.id] = {"step": "edit_ch_desc", "id": ch_id}
-    bot.edit_message_text("أدخل الوصف الجديد للقناة:", call.message.chat.id, call.message.message_id)
-
-@bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), dict) and user_states[msg.from_user.id].get("step") == "edit_ch_desc")
-def edit_desc_step2(message):
-    data = user_states[message.from_user.id]
-    ch_id = data["id"]
-    new_desc = message.text.strip()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("UPDATE force_sub_channels SET description=? WHERE id=?", (new_desc, ch_id))
-    conn.commit()
-    conn.close()
-    bot.reply_to(message, "✅ تم تحديث الوصف بنجاح!")
-    del user_states[message.from_user.id]
-
-# ======================
-# 📥 إضافة وحذف الرينجات (أدمن)
-# ======================
 @bot.callback_query_handler(func=lambda call: call.data == "admin_add_combo")
-def admin_add_combo_step1(call):
+def admin_add_combo(call):
     if not is_admin(call.from_user.id): return
     user_states[call.from_user.id] = "add_combo_country"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("أرسل كود الدولة (مثل 44 للمملكة المتحدة):", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    bot.send_message(call.message.chat.id, "أرسل كود الدولة (مثل 44):")
 
 @bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_combo_country")
-def admin_add_combo_step2(message):
-    code = message.text.strip().replace("+", "")
+def add_combo_country(msg):
+    code = msg.text.strip()
     if code not in AVAILABLE_COUNTRIES:
-        bot.reply_to(message, "❌ كود دولة غير مدعوم!")
+        bot.reply_to(msg, "❌ كود غير مدعوم!")
         return
-    user_states[message.from_user.id] = {"step": "add_combo_range", "code": code}
-    name_ar, flag = get_country_info(code)
-    bot.reply_to(message, f"أدخل الرينج (مثل 4473845XXX) لدولة {flag} {name_ar}:")
+    user_states[msg.from_user.id] = {"step": "add_combo_range", "code": code}
+    bot.reply_to(msg, "أرسل الرينج (مثل 4473845XXX):")
 
 @bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), dict) and user_states[msg.from_user.id].get("step") == "add_combo_range")
-def admin_add_combo_step3(message):
-    data = user_states[message.from_user.id]
+def add_combo_range(msg):
+    data = user_states[msg.from_user.id]
     code = data["code"]
-    range_str = message.text.strip()
+    range_str = msg.text.strip()
     if not range_str.endswith("XXX"):
-        bot.reply_to(message, "❌ الرينج يجب أن ينتهي بـ XXX (مثل 4473845XXX)")
+        bot.reply_to(msg, "❌ الرينج يجب أن ينتهي بـ XXX")
         return
     save_combo(code, range_str)
-    name_ar, flag = get_country_info(code)
-    bot.reply_to(message, f"✅ تم إضافة الرينج {range_str} لدولة {flag} {name_ar}")
-    del user_states[message.from_user.id]
+    bot.reply_to(msg, f"✅ تم إضافة الرينج {range_str}")
+    del user_states[msg.from_user.id]
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_del_combo")
-def admin_del_combo_step1(call):
+def admin_del_combo(call):
     if not is_admin(call.from_user.id): return
     combos = get_all_combos()
     if not combos:
-        bot.answer_callback_query(call.id, "❌ لا توجد رينجات لحذفها!", show_alert=True)
+        bot.answer_callback_query(call.id, "لا توجد رينجات!", show_alert=True)
         return
     markup = types.InlineKeyboardMarkup()
     for code, idx in combos:
         name_ar, flag = get_country_info(code)
         rng = get_combo_range(code, idx)
-        markup.add(types.InlineKeyboardButton(f"🗑️ {flag} {name_ar} ({rng})", callback_data=f"del_combo_{code}_{idx}"))
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("اختر الرينج المراد حذفه:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+        markup.add(types.InlineKeyboardButton(f"{flag} {name_ar} ({rng})", callback_data=f"del_combo_{code}_{idx}"))
+    markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="admin_panel"))
+    bot.edit_message_text("اختر الرينج للحذف:", call.message.chat.id, call.message.message_id, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("del_combo_"))
-def admin_del_combo_step2(call):
-    if not is_admin(call.from_user.id): return
+def del_combo_confirm(call):
     parts = call.data.split("_")
     code, idx = parts[2], int(parts[3])
     if delete_combo(code, idx):
-        bot.answer_callback_query(call.id, "✅ تم الحذف بنجاح", show_alert=True)
+        bot.answer_callback_query(call.id, "✅ تم الحذف", show_alert=True)
     else:
-        bot.answer_callback_query(call.id, "❌ فشل الحذف", show_alert=True)
-    admin_del_combo_step1(call)
+        bot.answer_callback_query(call.id, "❌ فشل", show_alert=True)
+    admin_del_combo(call)
 
-# ======================
-# 📊 الإحصائيات والتقارير
-# ======================
 @bot.callback_query_handler(func=lambda call: call.data == "admin_stats")
 def admin_stats(call):
     if not is_admin(call.from_user.id): return
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT COUNT(*) FROM users")
-        total_users = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM users WHERE is_banned=1")
-        banned_users = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM otp_logs")
-        total_otps = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM combos")
-        total_combos = c.fetchone()[0]
-        conn.close()
-        
-        stats_text = (
-            "<b>📊 إحصائيات البوت:</b>\n\n"
-            f"<b>• إجمالي المستخدمين:</b> {total_users}\n"
-            f"<b>• المحظورين:</b> {banned_users}\n"
-            f"<b>• إجمالي الأكواد المستلمة:</b> {total_otps}\n"
-            f"<b>• إجمالي الرينجات:</b> {total_combos}\n"
-        )
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-        bot.edit_message_text(stats_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML")
-    except Exception as e:
-        logger.error(f"admin_stats error: {e}")
+    users = len(get_all_users())
+    combos = len(get_all_combos())
+    logs = len(get_otp_logs())
+    active = len(get_active_numbers())
+    bot.edit_message_text(f"📊 الإحصائيات\n👥 المستخدمين: {users}\n📦 الرينجات: {combos}\n🔑 سجل OTP: {logs}\n📱 أرقام نشطة: {active}", call.message.chat.id, call.message.message_id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_full_report")
 def admin_full_report(call):
     if not is_admin(call.from_user.id): return
-    try:
-        with open(DB_PATH, "rb") as f:
-            bot.send_document(call.message.chat.id, f, caption="📄 تقرير شامل (قاعدة البيانات)")
-    except Exception as e:
-        bot.answer_callback_query(call.id, f"❌ خطأ: {e}", show_alert=True)
+    with open(DB_PATH, "rb") as f:
+        bot.send_document(call.message.chat.id, f, caption="📄 تقرير شامل")
 
-# ======================
-# 📢 نظام الإذاعة (Broadcast)
-# ======================
 @bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast_all")
-def admin_broadcast_all_step1(call):
+def admin_broadcast_all(call):
     if not is_admin(call.from_user.id): return
-    user_states[call.from_user.id] = "waiting_broadcast_msg"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 إلغاء", callback_data="admin_panel"))
-    bot.edit_message_text("📢 أرسل الرسالة التي تريد إذاعتها لجميع المستخدمين:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    user_states[call.from_user.id] = "broadcast_all"
+    bot.edit_message_text("📢 أرسل الرسالة للإذاعة للجميع:", call.message.chat.id, call.message.message_id)
 
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "waiting_broadcast_msg")
-def admin_broadcast_all_step2(message):
-    if not is_admin(message.from_user.id): return
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "broadcast_all")
+def broadcast_all_send(msg):
     users = get_all_users()
     count = 0
     for uid in users:
         try:
-            bot.copy_message(uid, message.chat.id, message.message_id)
+            bot.copy_message(uid, msg.chat.id, msg.message_id)
             count += 1
             time.sleep(0.05)
-        except: pass
-    bot.reply_to(message, f"✅ تم إرسال الإذاعة لـ {count} مستخدم بنجاح!")
-    del user_states[message.from_user.id]
+        except:
+            pass
+    bot.reply_to(msg, f"✅ تم الإرسال إلى {count} مستخدم")
+    del user_states[msg.from_user.id]
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast_user")
-def admin_broadcast_user_step1(call):
+def admin_broadcast_user(call):
     if not is_admin(call.from_user.id): return
     user_states[call.from_user.id] = "broadcast_user_id"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("📨 أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    bot.edit_message_text("📨 أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id)
 
 @bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "broadcast_user_id")
-def admin_broadcast_user_step2(message):
+def broadcast_user_id(msg):
     try:
-        uid = int(message.text)
-        user_states[message.from_user.id] = f"broadcast_msg_{uid}"
-        bot.reply_to(message, "📨 أرسل الرسالة:")
+        uid = int(msg.text)
+        user_states[msg.from_user.id] = f"broadcast_msg_{uid}"
+        bot.reply_to(msg, "📨 أرسل الرسالة:")
     except:
-        bot.reply_to(message, "❌ معرف غير صحيح!")
+        bot.reply_to(msg, "❌ معرف غير صحيح")
 
 @bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id, "").startswith("broadcast_msg_"))
-def admin_broadcast_user_step3(message):
-    uid = int(user_states[message.from_user.id].split("_")[2])
+def broadcast_user_send(msg):
+    uid = int(user_states[msg.from_user.id].split("_")[2])
     try:
-        bot.copy_message(uid, message.chat.id, message.message_id)
-        bot.reply_to(message, f"✅ تم الإرسال للمستخدم {uid}")
+        bot.copy_message(uid, msg.chat.id, msg.message_id)
+        bot.reply_to(msg, f"✅ تم الإرسال للمستخدم {uid}")
     except Exception as e:
-        bot.reply_to(message, f"❌ فشل: {e}")
-    del user_states[message.from_user.id]
+        bot.reply_to(msg, f"❌ فشل: {e}")
+    del user_states[msg.from_user.id]
 
-# ======================
-# 🚫 إدارة الحظر والمعلومات
-# ======================
 @bot.callback_query_handler(func=lambda call: call.data == "admin_ban")
-def admin_ban_step1(call):
+def admin_ban(call):
     if not is_admin(call.from_user.id): return
-    user_states[call.from_user.id] = "waiting_ban_uid"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("🚫 أرسل ID المستخدم المراد حظره:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    user_states[call.from_user.id] = "ban"
+    bot.edit_message_text("🚫 أرسل ID المستخدم للحظر:", call.message.chat.id, call.message.message_id)
 
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "waiting_ban_uid")
-def admin_ban_step2(message):
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "ban")
+def ban_user_id(msg):
     try:
-        uid = int(message.text)
+        uid = int(msg.text)
         ban_user(uid)
-        bot.reply_to(message, f"✅ تم حظر المستخدم {uid} بنجاح!")
+        bot.reply_to(msg, f"✅ تم حظر {uid}")
     except:
-        bot.reply_to(message, "❌ معرف غير صحيح!")
-    del user_states[message.from_user.id]
+        bot.reply_to(msg, "❌ معرف غير صحيح")
+    del user_states[msg.from_user.id]
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_unban")
-def admin_unban_step1(call):
+def admin_unban(call):
     if not is_admin(call.from_user.id): return
-    user_states[call.from_user.id] = "waiting_unban_uid"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("✅ أرسل ID المستخدم لفك حظره:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    user_states[call.from_user.id] = "unban"
+    bot.edit_message_text("✅ أرسل ID المستخدم لفك الحظر:", call.message.chat.id, call.message.message_id)
 
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "waiting_unban_uid")
-def admin_unban_step2(message):
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "unban")
+def unban_user_id(msg):
     try:
-        uid = int(message.text)
+        uid = int(msg.text)
         unban_user(uid)
-        bot.reply_to(message, f"✅ تم فك حظر المستخدم {uid} بنجاح!")
+        bot.reply_to(msg, f"✅ تم فك حظر {uid}")
     except:
-        bot.reply_to(message, "❌ معرف غير صحيح!")
-    del user_states[message.from_user.id]
+        bot.reply_to(msg, "❌ معرف غير صحيح")
+    del user_states[msg.from_user.id]
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_user_info")
-def admin_user_info_step1(call):
+def admin_user_info(call):
     if not is_admin(call.from_user.id): return
-    user_states[call.from_user.id] = "waiting_info_uid"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("👤 أرسل ID المستخدم لجلب معلوماته:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    user_states[call.from_user.id] = "user_info"
+    bot.edit_message_text("👤 أرسل ID المستخدم:", call.message.chat.id, call.message.message_id)
 
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "waiting_info_uid")
-def admin_user_info_step2(message):
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "user_info")
+def user_info_show(msg):
     try:
-        uid = int(message.text)
-        user = get_user(uid)
-        if user:
-            info = (
-                f"👤 <b>معلومات المستخدم:</b>\n"
-                f"<b>ID:</b> <code>{user[0]}</code>\n"
-                f"<b>Username:</b> @{user[1] or 'N/A'}\n"
-                f"<b>الاسم:</b> {user[2] or ''} {user[3] or ''}\n"
-                f"<b>محظور:</b> {'نعم' if user[6] else 'لا'}\n"
-                f"<b>الرقم المخصص:</b> {user[5] or 'لا يوجد'}"
-            )
-            bot.reply_to(message, info, parse_mode="HTML")
-        else:
-            bot.reply_to(message, "❌ المستخدم غير موجود في قاعدة البيانات.")
+        uid = int(msg.text)
+        user = get_user_info(uid)
+        if not user:
+            bot.reply_to(msg, "❌ غير موجود")
+            return
+        info = f"👤 {user[0]}\n@{user[1] or 'N/A'}\nالرقم: {user[4] or 'لا يوجد'}\nمحظور: {'نعم' if user[5] else 'لا'}"
+        bot.reply_to(msg, info)
     except:
-        bot.reply_to(message, "❌ معرف غير صحيح!")
-    del user_states[message.from_user.id]
+        bot.reply_to(msg, "❌ معرف غير صحيح")
+    del user_states[msg.from_user.id]
 
-# ======================
-# 🔑 إدارة الرينجات الخاصة (Private)
-# ======================
+@bot.callback_query_handler(func=lambda call: call.data == "admin_force_sub")
+def admin_force_sub(call):
+    if not is_admin(call.from_user.id): return
+    channels = get_all_force_sub_channels(enabled_only=False)
+    text = f"⚙️ قنوات الاشتراك: {len(channels)}\n"
+    markup = types.InlineKeyboardMarkup()
+    for cid, url, desc in channels:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT enabled FROM force_sub_channels WHERE id=?", (cid,))
+        en = c.fetchone()[0]
+        conn.close()
+        st = "✅" if en else "❌"
+        markup.add(types.InlineKeyboardButton(f"{st} {desc or url[:20]}", callback_data=f"edit_force_{cid}"))
+    markup.add(types.InlineKeyboardButton("➕ إضافة", callback_data="add_force_ch"))
+    markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="admin_panel"))
+    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data == "add_force_ch")
+def add_force_ch(call):
+    if not is_admin(call.from_user.id): return
+    user_states[call.from_user.id] = "add_force_url"
+    bot.edit_message_text("أرسل رابط القناة (https://t.me/xxx):", call.message.chat.id, call.message.message_id)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_force_url")
+def add_force_url(msg):
+    url = msg.text.strip()
+    if not (url.startswith("https://t.me/") or url.startswith("@")):
+        bot.reply_to(msg, "❌ رابط غير صالح")
+        return
+    user_states[msg.from_user.id] = {"step": "add_force_desc", "url": url}
+    bot.reply_to(msg, "أدخل وصفاً (أو اترك فارغاً):")
+
+@bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), dict) and user_states[msg.from_user.id].get("step") == "add_force_desc")
+def add_force_desc(msg):
+    data = user_states[msg.from_user.id]
+    desc = msg.text.strip()
+    if add_force_sub_channel(data["url"], desc):
+        bot.reply_to(msg, "✅ تمت الإضافة")
+    else:
+        bot.reply_to(msg, "❌ موجودة مسبقاً")
+    del user_states[msg.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_force_"))
+def edit_force_ch(call):
+    cid = int(call.data.split("_")[2])
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT channel_url, description, enabled FROM force_sub_channels WHERE id=?", (cid,))
+    row = c.fetchone()
+    conn.close()
+    if not row: return
+    url, desc, en = row
+    text = f"🔧 {url}\nالوصف: {desc or '—'}\nالحالة: {'مفعلة' if en else 'معطلة'}"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("✏️ تعديل الوصف", callback_data=f"edit_desc_{cid}"))
+    markup.add(types.InlineKeyboardButton("❌ تعطيل" if en else "✅ تفعيل", callback_data=f"toggle_force_{cid}"))
+    markup.add(types.InlineKeyboardButton("🗑️ حذف", callback_data=f"del_force_{cid}"))
+    markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="force_sub_admin"))
+    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("toggle_force_"))
+def toggle_force(call):
+    cid = int(call.data.split("_")[2])
+    toggle_force_sub_channel(cid)
+    bot.answer_callback_query(call.id, "✅ تم التبديل", show_alert=True)
+    admin_force_sub(call)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("del_force_"))
+def del_force(call):
+    cid = int(call.data.split("_")[2])
+    if delete_force_sub_channel(cid):
+        bot.answer_callback_query(call.id, "✅ تم الحذف", show_alert=True)
+    else:
+        bot.answer_callback_query(call.id, "❌ فشل", show_alert=True)
+    admin_force_sub(call)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_desc_"))
+def edit_desc(call):
+    cid = int(call.data.split("_")[2])
+    user_states[call.from_user.id] = f"edit_desc_{cid}"
+    bot.edit_message_text("أدخل الوصف الجديد:", call.message.chat.id, call.message.message_id)
+
+@bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), str) and user_states[msg.from_user.id].startswith("edit_desc_"))
+def edit_desc_exec(msg):
+    cid = int(user_states[msg.from_user.id].split("_")[2])
+    desc = msg.text.strip()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("UPDATE force_sub_channels SET description=? WHERE id=?", (desc, cid))
+    conn.commit()
+    conn.close()
+    bot.reply_to(msg, "✅ تم التحديث")
+    del user_states[msg.from_user.id]
+
 @bot.callback_query_handler(func=lambda call: call.data == "admin_private_combo")
 def admin_private_combo(call):
     if not is_admin(call.from_user.id): return
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("➕ تعيين رينج خاص لمستخدم", callback_data="add_private_combo"))
-    markup.add(types.InlineKeyboardButton("🗑️ حذف رينج خاص من مستخدم", callback_data="del_private_combo"))
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
-    bot.edit_message_text("🔑 إدارة الرينجات الخاصة:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    markup.add(types.InlineKeyboardButton("➕ تعيين رينج خاص", callback_data="add_private_combo"))
+    markup.add(types.InlineKeyboardButton("🗑️ حذف رينج خاص", callback_data="del_private_combo"))
+    markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="admin_panel"))
+    bot.edit_message_text("🔑 إدارة الرينجات الخاصة", call.message.chat.id, call.message.message_id, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "add_private_combo")
-def add_private_combo_step1(call):
+def add_private(call):
     if not is_admin(call.from_user.id): return
-    user_states[call.from_user.id] = "add_private_user_id"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_private_combo"))
-    bot.edit_message_text("➕ أدخل معرف المستخدم (User ID):", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    user_states[call.from_user.id] = "add_private_user"
+    bot.edit_message_text("➕ أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id)
 
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_private_user_id")
-def add_private_combo_step2(message):
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_private_user")
+def add_private_user(msg):
     try:
-        uid = int(message.text)
-        user_states[message.from_user.id] = {"step": "add_private_country", "uid": uid}
-        markup = types.InlineKeyboardMarkup()
+        uid = int(msg.text)
+        user_states[msg.from_user.id] = {"step": "add_private_country", "uid": uid}
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        buttons = []
         for code in AVAILABLE_COUNTRIES:
             name_ar, flag = get_country_info(code)
-            markup.add(types.InlineKeyboardButton(f"{flag} {name_ar}", callback_data=f"select_private_{uid}_{code}"))
-        markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_private_combo"))
-        bot.reply_to(message, "اختر الدولة:", reply_markup=markup)
+            buttons.append(types.InlineKeyboardButton(f"{flag} {name_ar}", callback_data=f"select_private_{uid}_{code}"))
+        for i in range(0, len(buttons), 2):
+            markup.row(*buttons[i:i+2])
+        markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="admin_private_combo"))
+        bot.reply_to(msg, "اختر الدولة:", reply_markup=markup)
     except:
-        bot.reply_to(message, "❌ معرف غير صحيح!")
+        bot.reply_to(msg, "❌ معرف غير صحيح")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("select_private_"))
-def select_private_combo(call):
-    if not is_admin(call.from_user.id): return
+def select_private(call):
     parts = call.data.split("_")
     uid = int(parts[2])
-    country_code = parts[3]
-    save_user(uid, private_combo_country=country_code)
-    name_ar, flag = get_country_info(country_code)
-    bot.answer_callback_query(call.id, f"✅ تم تعيين رينج خاص لـ {uid} - {flag} {name_ar}", show_alert=True)
+    code = parts[3]
+    save_user(uid, private_combo_country=code)
+    bot.answer_callback_query(call.id, f"✅ تم تعيين رينج خاص", show_alert=True)
     admin_private_combo(call)
 
 @bot.callback_query_handler(func=lambda call: call.data == "del_private_combo")
-def del_private_combo_step1(call):
-    if not is_admin(call.from_user.id):
-        return
-    user_states[call.from_user.id] = "del_private_user_id"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_private_combo"))
-    bot.edit_message_text("🗑️ أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id, reply_markup=markup)
-
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "del_private_user_id")
-def del_private_combo_step2(message):
-    try:
-        uid = int(message.text)
-        save_user(uid, private_combo_country=None)
-        bot.reply_to(message, f"✅ تم مسح الرينج الخاص للمستخدم {uid}")
-    except:
-        bot.reply_to(message, "❌ معرف غير صحيح!")
-    del user_states[message.from_user.id]
-
-# ======================
-# 🖥️ زر اللوحات (Dashboards) - نائب
-# ======================
-@bot.callback_query_handler(func=lambda call: call.data == "admin_dashboards")
-def admin_dashboards(call):
+def del_private(call):
     if not is_admin(call.from_user.id): return
-    bot.answer_callback_query(call.id, "🖥️ هذه الميزة قريباً", show_alert=True)
+    user_states[call.from_user.id] = "del_private_user"
+    bot.edit_message_text("🗑️ أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "del_private_user")
+def del_private_user(msg):
+    try:
+        uid = int(msg.text)
+        save_user(uid, private_combo_country=None)
+        bot.reply_to(msg, f"✅ تم مسح الرينج الخاص")
+    except:
+        bot.reply_to(msg, "❌ معرف غير صحيح")
+    del user_states[msg.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_set_welcome_photo")
+def admin_set_welcome_photo(call):
+    if not is_admin(call.from_user.id): return
+    user_states[call.from_user.id] = "waiting_for_welcome_photo"
+    bot.edit_message_text("🖼️ أرسل الصورة:", call.message.chat.id, call.message.message_id)
+
+@bot.message_handler(content_types=['photo'], func=lambda msg: user_states.get(msg.from_user.id) == "waiting_for_welcome_photo")
+def welcome_photo_set(msg):
+    if not is_admin(msg.from_user.id): return
+    del user_states[msg.from_user.id]
+    photo_id = msg.photo[-1].file_id
+    set_setting("welcome_photo", photo_id)
+    bot.reply_to(msg, "✅ تم حفظ الصورة")
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_del_welcome_photo")
+def admin_del_welcome_photo(call):
+    if not is_admin(call.from_user.id): return
+    set_setting("welcome_photo", "")
+    bot.answer_callback_query(call.id, "🗑️ تم حذف الصورة", show_alert=True)
     admin_panel(call)
 
-# ======================
-# 🗑️ مسح قاعدة البيانات
-# ======================
 @bot.callback_query_handler(func=lambda call: call.data == "clear_db")
 def clear_db(call):
     if not is_admin(call.from_user.id): return
-    try:
-        mk = types.InlineKeyboardMarkup()
-        mk.add(types.InlineKeyboardButton("✅ تأكيد", callback_data="confirm_clear_db"))
-        mk.add(types.InlineKeyboardButton("❌ إلغاء", callback_data="admin_panel"))
-        bot.edit_message_text("⚠️ هل أنت متأكد من مسح قاعدة البيانات؟ هذا الإجراء لا يمكن التراجع عنه!", 
-                            call.message.chat.id, call.message.message_id, reply_markup=mk)
-    except Exception as e:
-        logger.error(f"clear_db error: {e}")
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("✅ تأكيد", callback_data="confirm_clear_db"))
+    markup.add(types.InlineKeyboardButton("❌ إلغاء", callback_data="admin_panel"))
+    bot.edit_message_text("⚠️ تأكيد مسح قاعدة البيانات؟", call.message.chat.id, call.message.message_id, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "confirm_clear_db")
 def confirm_clear_db(call):
     if not is_admin(call.from_user.id): return
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("DELETE FROM users")
-        c.execute("DELETE FROM otp_logs")
-        c.execute("DELETE FROM active_numbers")
-        c.execute("DELETE FROM combos")
-        c.execute("DELETE FROM private_combos")
-        c.execute("DELETE FROM force_sub_channels")
-        conn.commit()
-        conn.close()
-        bot.answer_callback_query(call.id, "✅ تم مسح قاعدة البيانات", show_alert=True)
-        admin_panel(call)
-    except Exception as e:
-        logger.error(f"confirm_clear_db error: {e}")
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM users")
+    c.execute("DELETE FROM otp_logs")
+    c.execute("DELETE FROM active_numbers")
+    c.execute("DELETE FROM combos")
+    c.execute("DELETE FROM private_combos")
+    c.execute("DELETE FROM force_sub_channels")
+    conn.commit()
+    conn.close()
+    bot.answer_callback_query(call.id, "✅ تم المسح", show_alert=True)
+    admin_panel(call)
 
 # ======================================================================================
-# خادم ويب Flask لاستقبال طلبات health check
+# خادم ويب Flask
 # ======================================================================================
 app = Flask(__name__)
 
@@ -1645,10 +1376,10 @@ def health():
 
 def run_web_server():
     port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, threaded=True)
 
 # ======================================================================================
-# تشغيل البوت والحلقة الرئيسية
+# تشغيل البوت
 # ======================================================================================
 def run_bot():
     logger.info("[*] بدء تشغيل بوت Telegram...")
@@ -1660,14 +1391,14 @@ def run_bot():
             time.sleep(5)
 
 if __name__ == "__main__":
-    # تشغيل خادم الويب في خيط منفصل
+    # تشغيل خادم الويب
     web_thread = threading.Thread(target=run_web_server, daemon=True)
     web_thread.start()
     logger.info("✅ خادم الويب يعمل على المنفذ 8080")
     
-    # تشغيل الحلقة الرئيسية للبوت في خيط آخر
+    # تشغيل الحلقة الرئيسية
     main_thread = threading.Thread(target=main_loop, daemon=True)
     main_thread.start()
     
-    # تشغيل البوت (polling)
+    # تشغيل البوت
     run_bot()
