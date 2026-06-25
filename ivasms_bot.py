@@ -2015,10 +2015,9 @@ def health():
     return {"status": "ok", "bot": "Taker2 OTP"}
 
 if __name__ == "__main__":
-    # تشغيل Flask في thread منفصل
-    flask_thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)), debug=False, use_reloader=False))
-    flask_thread.daemon = True
-    flask_thread.start()
+    import os
+    port = int(os.environ.get('PORT', 8080))
+    print(f"🚀 Starting Flask on port {port}")
     
-    # تشغيل البوت
-    run_bot()
+    # تشغيل Flask
+    app.run(host='0.0.0.0', port=port, debug=False)
