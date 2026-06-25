@@ -2002,8 +2002,11 @@ def run_bot():
             time.sleep(5)
 
 # ======================
-# ▶️ تشغيل البوت مع Flask
+# ▶️ تشغيل البوت مع Flask (آخر 20 سطر)
 # ======================
+from flask import Flask
+import os
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -2015,9 +2018,7 @@ def health():
     return {"status": "ok", "bot": "Taker2 OTP"}
 
 if __name__ == "__main__":
-    import os
+    # بدء تشغيل Flask على المنفذ المطلوب
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Starting Flask on port {port}")
-    
-    # تشغيل Flask
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
