@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║     🚀 𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃 BOT - ULTIMATE EDITION v5.0                      ║
+║     👨‍💻 Developer: @DEVIL_EL_YOUTUBER                                     ║
+║     🔗 API: iVasms (Full Integration)                                    ║
+║     🌐 Languages: العربية                                                ║
+║     🧵 Workers: Multi-Threaded                                           ║
+║     ⏱️  Auto Delete: 180s                                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+"""
+import sys
+print("✅ 1. تم الوصول إلى الملف")
+sys.stdout.flush()
+
 import time
 import requests
 import json
@@ -20,16 +34,21 @@ import httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
+print("✅ 2. تم استيراد المكتبات بنجاح")
+sys.stdout.flush()
 
-# منع تكرار رسالة انتهاء الكوكيز
+# ======================
+# 🔧 المتغيرات العامة
+# ======================
 _cookies_alert_sent = False
-
-# منع تعارض login من مصادر متعددة
 _login_lock = threading.Lock()
 _login_in_progress = False
-_cookies_expired = False  # لما الكوكيز تنتهي يوقف المحاولات
+_cookies_expired = False
+user_states = {}
 
-
+# ======================
+# 🍪 نظام الكوكيز
+# ======================
 COOKIES_FILE = "mafia_ck_4235.json"
 
 def save_cookies_to_file(cookies_dict):
@@ -43,15 +62,15 @@ def load_cookies_from_file():
     return None
 
 def apply_cookies(cookies_list_or_dict):
-    dash    = IVASMS_DASHBOARD
+    dash = IVASMS_DASHBOARD
     session = dash['session']
     session.cookies.clear()
     print(f"[DEBUG] apply_cookies - نوع البيانات: {type(cookies_list_or_dict)}")
     if isinstance(cookies_list_or_dict, list):
         print(f"[DEBUG] عدد الكوكيز: {len(cookies_list_or_dict)}")
         for c in cookies_list_or_dict:
-            name   = c['name']
-            value  = c['value']
+            name = c['name']
+            value = c['value']
             domain = c.get('domain', 'www.ivasms.com').lstrip('.')
             print(f"[DEBUG] حط كوكي: {name} | domain={domain} | value={value[:20]}")
             session.cookies.set(name, value, domain=domain, path='/')
@@ -72,11 +91,9 @@ def apply_cookies(cookies_list_or_dict):
     threading.Thread(target=login_to_ivasms, daemon=True).start()
     return True
 
-
 # ======================
-# 🖥️ إعداد اللوحة الوحيدة (iVasms)
+# 🖥️ إعداد لوحة iVasms
 # ======================
-
 IVASMS_DASHBOARD = {
     "name": "iVasms",
     "type": "ivasms",
@@ -97,7 +114,7 @@ IVASMS_DASHBOARD = {
 # ======================
 USERNAME = "bwt756183@gmail.com"
 PASSWORD = "011399@ZZzz"
-BOT_TOKEN = "8719786806:AAHwGHyhqN5dOHSQEoLb4jt-YTvHEs2YLuM"
+BOT_TOKEN = "8719786806:AAGDma9jmh8pmT0NnqFvseU65lYVWCg1GFw"
 CHAT_IDS = ["-1003789271722"]
 REFRESH_INTERVAL = 3
 TIMEOUT = 100
@@ -109,19 +126,19 @@ IDX_NUMBER = 2
 IDX_SMS = 5
 SENT_MESSAGES_FILE = "sent_messages_bot1.json"
 
-ADMIN_IDS = [6073745914, 6073745914]  
+ADMIN_IDS = [8728019066, 8972941677]
 DB_PATH = "bot1.db"
 FORCE_SUB_CHANNEL = None
 FORCE_SUB_ENABLED = False
-BOT_ACTIVE = True 
+BOT_ACTIVE = True
 
 if not BOT_TOKEN:
-    raise SystemExit("❌ BOT_TOKEN must be set in Secrets")
+    raise SystemExit("❌ BOT_TOKEN must be set in Secrets (Environment Variables)")
 if not CHAT_IDS:
     raise SystemExit("❌ CHAT_IDS must be configured")
 
 # ======================
-# 🌍 رموز الدول
+# 🌍 رموز الدول (كاملة)
 # ======================
 COUNTRY_CODES = {
     "1": ("USA/Canada", "🇺🇸", "US"),
@@ -334,7 +351,7 @@ def set_setting(key, value):
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('''
+    c.executescript('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             username TEXT,
@@ -344,18 +361,14 @@ def init_db():
             assigned_number TEXT,
             is_banned INTEGER DEFAULT 0,
             private_combo_country TEXT DEFAULT NULL
-        )
-    ''')
-    c.execute('''
+        );
         CREATE TABLE IF NOT EXISTS combos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             country_code TEXT,
             combo_index INTEGER DEFAULT 1,
             numbers TEXT,
             UNIQUE(country_code, combo_index)
-        )
-    ''')
-    c.execute('''
+        );
         CREATE TABLE IF NOT EXISTS otp_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             number TEXT,
@@ -363,9 +376,7 @@ def init_db():
             full_message TEXT,
             timestamp TEXT,
             assigned_to INTEGER
-        )
-    ''')
-    c.execute('''
+        );
         CREATE TABLE IF NOT EXISTS dashboards (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             base_url TEXT,
@@ -374,29 +385,23 @@ def init_db():
             login_post TEXT,
             username TEXT,
             password TEXT
-        )
-    ''')
-    c.execute('''
+        );
         CREATE TABLE IF NOT EXISTS bot_settings (
             key TEXT PRIMARY KEY,
             value TEXT
-        )
-    ''')
-    c.execute('''
+        );
         CREATE TABLE IF NOT EXISTS private_combos (
             user_id INTEGER,
             country_code TEXT,
             numbers TEXT,
             PRIMARY KEY (user_id, country_code)
-        )
-    ''')
-    c.execute('''
+        );
         CREATE TABLE IF NOT EXISTS force_sub_channels (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             channel_url TEXT UNIQUE NOT NULL,
             description TEXT DEFAULT '',
             enabled INTEGER DEFAULT 1
-        )
+        );
     ''')
     c.execute("INSERT OR IGNORE INTO bot_settings (key, value) VALUES ('force_sub_channel', '')")
     c.execute("INSERT OR IGNORE INTO bot_settings (key, value) VALUES ('force_sub_enabled', '0')")
@@ -414,6 +419,9 @@ def init_db():
 
 init_db()
 
+# ======================
+# 🧰 دوال المستخدمين
+# ======================
 def get_user(user_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -457,14 +465,14 @@ def unban_user(user_id):
 def is_banned(user_id):
     user = get_user(user_id)
     return user and user[6] == 1
-    
+
 def is_maintenance_mode():
     return not BOT_ACTIVE
 
 def set_maintenance_mode(status):
     global BOT_ACTIVE
     BOT_ACTIVE = not status
-    
+
 def get_all_users():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -539,32 +547,13 @@ def assign_number_to_user(user_id, number):
     conn.commit()
     conn.close()
 
-def assign_numbers_to_user(user_id, numbers):
-    """تخزين الأرقام كمصفوفة JSON"""
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("UPDATE users SET assigned_number=? WHERE user_id=?", (json.dumps(numbers), user_id))
-    conn.commit()
-    conn.close()
-
 def get_user_by_number(number):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT user_id, assigned_number FROM users WHERE assigned_number IS NOT NULL AND assigned_number != ''")
-    rows = c.fetchall()
+    c.execute("SELECT user_id FROM users WHERE assigned_number=?", (number,))
+    row = c.fetchone()
     conn.close()
-    
-    for user_id, assigned_json in rows:
-        try:
-            numbers = json.loads(assigned_json)
-            if isinstance(numbers, list) and number in numbers:
-                return user_id
-            elif isinstance(numbers, str) and number == numbers:
-                return user_id
-        except:
-            if number == assigned_json:
-                return user_id
-    return None
+    return row[0] if row else None
 
 def log_otp(number, otp, full_message, assigned_to=None):
     conn = sqlite3.connect(DB_PATH)
@@ -579,15 +568,7 @@ def release_number(old_number):
         return
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    try:
-        numbers_list = json.loads(old_number)
-        if isinstance(numbers_list, list):
-            for num in numbers_list:
-                c.execute("UPDATE users SET assigned_number=NULL WHERE assigned_number LIKE ?", (f'%"{num}"%',))
-        else:
-            c.execute("UPDATE users SET assigned_number=NULL WHERE assigned_number=?", (old_number,))
-    except:
-        c.execute("UPDATE users SET assigned_number=NULL WHERE assigned_number=?", (old_number,))
+    c.execute("UPDATE users SET assigned_number=NULL WHERE assigned_number=?", (old_number,))
     conn.commit()
     conn.close()
 
@@ -607,6 +588,21 @@ def get_user_info(user_id):
     conn.close()
     return row
 
+def get_available_numbers(country_code, combo_index=1, user_id=None):
+    all_numbers = get_combo(country_code, combo_index, user_id)
+    if not all_numbers:
+        return []
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT assigned_number FROM users WHERE assigned_number IS NOT NULL AND assigned_number != ''")
+    used_numbers = set(row[0] for row in c.fetchall())
+    conn.close()
+    available = [num for num in all_numbers if num not in used_numbers]
+    return available
+
+# ======================
+# 🔐 دوال الاشتراك الإجباري
+# ======================
 def get_all_force_sub_channels(enabled_only=True):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -678,6 +674,9 @@ def force_sub_markup():
     markup.add(types.InlineKeyboardButton("✅ تحقق من الاشتراك", callback_data="check_sub"))
     return markup
 
+# ======================
+# 🤖 إنشاء البوت
+# ======================
 bot = telebot.TeleBot(BOT_TOKEN)
 
 def is_admin(user_id):
@@ -692,638 +691,6 @@ def safe_html(text):
     text = text.replace('>', '&gt;')
     text = text.replace('"', '&quot;')
     return text
-
-# ======================
-# دعم الألوان للأزرار
-# ======================
-def color_button(text, callback_data, style="primary"):
-    btn = types.InlineKeyboardButton(text, callback_data=callback_data)
-    btn.style = style
-    return btn
-
-def color_url_button(text, url, style="primary"):
-    btn = types.InlineKeyboardButton(text, url=url)
-    btn.style = style
-    return btn
-
-# ======================
-# 🏠 رسالة الترحيب
-# ======================
-
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
-
-    if is_admin(user_id) and not IVASMS_DASHBOARD.get('is_logged_in', False):
-        mar = types.InlineKeyboardMarkup(row_width=1)
-        mar.add(
-            color_button("💻 شرح جلب الكوكيز من PC", "cookies_guide_pc", "primary"),
-            color_button("📱 شرح جلب الكوكيز من الفون", "cookies_guide_phone", "primary"),
-            color_button("📤 ابعت الكوكيز الجديدة", "cookies_send", "danger")
-        )
-        bot.send_message(chat_id, "⚠️ <b>الكوكيز منتهية!</b>\n\nالبوت مش شغال دلوقتي.\nجدد الكوكيز عشان يكمل 👇", reply_markup=mar, parse_mode="HTML")
-        return
-
-    if not is_admin(user_id) and not IVASMS_DASHBOARD.get('is_logged_in', False):
-        maintenance_caption = (
-            "<b>❍─── <u> Taker2 OTP</u> ───❍</b>\n\n"
-            "<b>⚠️ عذراً عزيزي المستخدم..</b>\n"
-            "<b>البوت الآن في وضع الصيانة لتحديث الخدمات.</b>\n\n"
-            "<b>⏳ يرجى المحاولة مرة أخرى لاحقاً.</b>\n"
-            "<b>────────────────────</b>"
-        )
-        maintenance_photo = "https://i.ibb.co/2352v1FN/file-000000004f20720aaa70039fcd26faab-1.png"
-        try:
-            bot.send_photo(chat_id, maintenance_photo, caption=maintenance_caption, parse_mode="HTML")
-        except Exception:
-            bot.send_message(chat_id, maintenance_caption, parse_mode="HTML")
-        return
-
-    if is_maintenance_mode() and not is_admin(user_id):
-        maintenance_caption = (
-            "<b>❍─── <u> Taker2 OTP</u> ───❍</b>\n\n"
-            "<b>⚠️ عذراً عزيزي المستخدم..</b>\n"
-            "<b>البوت الآن في وضع الصيانة لتحديث الخدمات.</b>\n\n"
-            "<b>⏳ يرجى المحاولة مرة أخرى لاحقاً.</b>\n"
-            "<b>────────────────────</b>"
-        )
-        maintenance_photo = "https://i.ibb.co/2352v1FN/file-000000004f20720aaa70039fcd26faab-1.png"
-        try:
-            bot.send_photo(chat_id, maintenance_photo, caption=maintenance_caption, parse_mode="HTML")
-        except:
-            bot.send_message(chat_id, maintenance_caption, parse_mode="HTML")
-        return
-
-    if is_banned(user_id):
-        bot.reply_to(message, "<b>🚫 عذراً، لقد تم حظرك من استخدام البوت.</b>", parse_mode="HTML")
-        return
-
-    if not force_sub_check(user_id):
-        markup = force_sub_markup()
-        if markup:
-            bot.send_message(chat_id, "<b>🔒 يجب الاشتراك في القنوات لاستخدام البوت.</b>", parse_mode="HTML", reply_markup=markup)
-        else:
-            bot.send_message(chat_id, "<b>🔒 الاشتراك الإجباري مفعل لكن لم يتم تحديد قناة!</b>", parse_mode="HTML")
-        return
-
-    if not get_user(user_id):
-        save_user(user_id, username=message.from_user.username or "", first_name=message.from_user.first_name or "", last_name=message.from_user.last_name or "")
-        for admin in ADMIN_IDS:
-            try:
-                caption = f"🆕 <b>ضيف جديد نور بوتك :</b>\n<b>🆔:</b> <code>{user_id}</code>\n<b>👤:</b> @{safe_html(message.from_user.username or 'None')}\n<b>الاسم:</b> {safe_html(message.from_user.first_name or '')}"
-                bot.send_message(admin, caption, parse_mode="HTML")
-            except:
-                pass
-    
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    buttons = []
-    user_data = get_user(user_id)
-    private_combo = user_data[7] if user_data else None
-    all_combos = get_all_combos()
-
-    country_combos = {}
-    for country_code, combo_index in all_combos:
-        if country_code not in country_combos:
-            country_combos[country_code] = []
-        country_combos[country_code].append(combo_index)
-
-    if private_combo and private_combo in COUNTRY_CODES:
-        name, flag, _ = COUNTRY_CODES[private_combo]
-        buttons.append(color_button(f"{flag} {name} (Private)", f"country_{private_combo}_1", "success"))
-
-    for country_code, indices in country_combos.items():
-        if country_code in COUNTRY_CODES and country_code != private_combo:
-            name, flag, _ = COUNTRY_CODES[country_code]
-            for idx in indices:
-                if len(indices) == 1:
-                    btn_text = f"{flag} {name}"
-                else:
-                    btn_text = f"{flag} {name} ({idx})"
-                buttons.append(color_button(btn_text, f"country_{country_code}_{idx}", "primary"))
-
-    for i in range(0, len(buttons), 2):
-        markup.row(*buttons[i:i+2])
-
-    if is_admin(user_id):
-        markup.add(color_button("🔐 Admin Panel", "admin_panel", "danger"))
-
-    fancy_text = (
-        "<b>❍<u> Taker2 OTP</u>❍</b>\n\n"
-        "<b>🔋<u>★WELCOME MY FRIEND  TO THE BEST OTP  NUMBERS BOT ★</u></b>\n\n"
-        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=6073745914'>.⤹​𝗠𝗘𝗗𝗢 𝗕𝗘𝗡 𝗔𝗦𝗬𝗨𝗧⤾.</a></b>\n\n"
-        "<b>────────────────────</b>\n"
-        "<b><u>اخـتـر الــدولـة الـتـي تـريـدهـا مـن الـزر الاسـفـل</u> ⬇️</b>"
-    )
-
-    bot.send_message(chat_id, fancy_text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
-
-# ======================
-# معالج الاشتراك الإجباري
-# ======================
-@bot.callback_query_handler(func=lambda call: call.data == "check_sub")
-def check_subscription(call):
-    if force_sub_check(call.from_user.id):
-        bot.answer_callback_query(call.id, "✅ تم التحقق! يمكنك استخدام البوت الآن.", show_alert=True)
-        send_welcome(call.message)
-    else:
-        bot.answer_callback_query(call.id, "❌ انت غير مشترك!", show_alert=True)
-
-# ======================
-# معالج اختيار الدولة (كل الأزرار تحت بعض)
-# ======================
-@bot.callback_query_handler(func=lambda call: call.data.startswith("country_"))
-def handle_country_selection(call):
-    user_id = call.from_user.id
-    chat_id = call.message.chat.id
-    message_id = call.message.message_id
-
-    if is_banned(user_id):
-        bot.answer_callback_query(call.id, "🚫 You are banned.", show_alert=True)
-        return
-    if not force_sub_check(user_id):
-        markup = force_sub_markup()
-        bot.send_message(chat_id, "<b>🔒 اشترك في القنوات أولاً</b>", parse_mode="HTML", reply_markup=markup)
-        return
-
-    parts = call.data.split("_")
-    country_code = parts[1]
-    combo_index = int(parts[2]) if len(parts) > 2 else 1
-    
-    save_user(user_id, country_code=country_code)
-    
-    available_numbers = get_available_numbers(country_code, combo_index, user_id)
-    
-    if not available_numbers:
-        error_msg = "<b>❌ نعتذر، جميع الأرقام قيد الاستخدام حالياً لهذه الدولة.</b>"
-        markup = types.InlineKeyboardMarkup()
-        markup.add(color_button("🔙 العودة لاختيار دولة أخرى", "back_to_countries", "primary"))
-        bot.edit_message_text(error_msg, chat_id, message_id, reply_markup=markup, parse_mode="HTML")
-        return
-
-    # اختيار 3 أرقام عشوائية مختلفة
-    if len(available_numbers) >= 3:
-        assigned_numbers = random.sample(available_numbers, 3)
-    else:
-        assigned_numbers = available_numbers
-    
-    old_user = get_user(user_id)
-    if old_user and old_user[5]:
-        release_number(old_user[5])
-    
-    assign_numbers_to_user(user_id, assigned_numbers)
-    save_user(user_id, country_code=country_code, assigned_number=json.dumps(assigned_numbers))
-    
-    name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
-    
-    numbers_text = ""
-    for i, num in enumerate(assigned_numbers, 1):
-        numbers_text += f"<b>📱 رقم {i}:</b> <code>+{num}</code>\n"
-    
-    msg_text = (
-        f"<b>❍─── <u> Taker2 OTP</u> ───❍</b>\n\n"
-        f"<b>🌍 الدولة:</b> {flag} {name}\n"
-        f"<b>🔢 الكومبو:</b> #{combo_index}\n"
-        f"<b>📊 عدد الأرقام المتاحة:</b> {len(assigned_numbers)}\n\n"
-        f"{numbers_text}\n"
-        f"<b>⏳ في انتظار وصول الـ OTP على أي من هذه الأرقام</b>\n\n"
-        f"<b>────────────────────</b>"
-    )
-
-    # الأزرار تحت بعض (كل زر في سطر منفصل)
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_url_button("👥 Group OTP", "https://t.me/+Vkh68Z0Rz-wzMGNk", "success"))
-    markup.add(color_url_button("📢 Bot Channel", "https://t.me/numhj", "primary"))
-    markup.add(color_url_button("👑 Developer", "https://t.me/hackerTaker", "primary"))
-    markup.add(color_button("🔄 تغيير الأرقام", f"change_num_{country_code}_{combo_index}", "primary"))
-    markup.add(color_button("🔙 رجوع", "back_to_countries", "danger"))
-
-    try:
-        bot.edit_message_text(
-            text=msg_text,
-            chat_id=chat_id,
-            message_id=message_id,
-            reply_markup=markup,
-            parse_mode="HTML",
-            disable_web_page_preview=True
-        )
-        bot.answer_callback_query(call.id, "✅ تم استلام الأرقام بنجاح")
-    except Exception as e:
-        print(f"Error: {e}")
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("change_num_"))
-def change_number(call):
-    user_id = call.from_user.id
-    
-    if is_banned(user_id):
-        return
-    if not force_sub_check(user_id):
-        return
-        
-    parts = call.data.split("_")
-    country_code = parts[2]
-    combo_index = int(parts[3]) if len(parts) > 3 else 1
-    
-    available_numbers = get_available_numbers(country_code, combo_index, user_id)
-    
-    if len(available_numbers) < 3:
-        bot.answer_callback_query(call.id, "❌ نعتذر، لا يوجد 3 أرقام متاحة حالياً.", show_alert=True)
-        return
-
-    assigned_numbers = random.sample(available_numbers, 3)
-    
-    old_user = get_user(user_id)
-    if old_user and old_user[5]:
-        release_number(old_user[5])
-        
-    assign_numbers_to_user(user_id, assigned_numbers)
-    save_user(user_id, assigned_number=json.dumps(assigned_numbers))
-    
-    name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
-    
-    numbers_text = ""
-    for i, num in enumerate(assigned_numbers, 1):
-        numbers_text += f"<b>📱 رقم {i}:</b> <code>+{num}</code>\n"
-    
-    msg_text = (
-        f"<b>❍─── <u> Taker2 OTP</u> ───❍</b>\n\n"
-        f"<b>🌍 الدولة:</b> {flag} {name}\n"
-        f"<b>🔢 الكومبو:</b> #{combo_index}\n"
-        f"{numbers_text}\n"
-        f"<b>⏳ في انتظار وصول الـ OTP على أي من هذه الأرقام</b>"
-    )
-
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_url_button("👥 Group OTP", "https://t.me/+Vkh68Z0Rz-wzMGNk", "success"))
-    markup.add(color_url_button("📢 Bot Channel", "https://t.me/numhj", "primary"))
-    markup.add(color_url_button("👑 Developer", "https://t.me/hackerTaker", "primary"))
-    markup.add(color_button("🔄 تغيير الأرقام", f"change_num_{country_code}_{combo_index}", "primary"))
-    markup.add(color_button("🔙 رجوع", "back_to_countries", "danger"))
-
-    try:
-        bot.edit_message_text(
-            text=msg_text,
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            reply_markup=markup,
-            parse_mode="HTML",
-            disable_web_page_preview=True
-        )
-        bot.answer_callback_query(call.id, "✅ تم تغيير الأرقام")
-    except Exception as e:
-        print(f"Error in change_number: {e}")
-        bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "back_to_countries")
-def back_to_countries(call):
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    buttons = []
-    
-    user = get_user(call.from_user.id)
-    private_combo = user[7] if user else None
-    all_combos = get_all_combos()
-
-    country_combos = {}
-    for country_code, combo_index in all_combos:
-        if country_code not in country_combos:
-            country_combos[country_code] = []
-        country_combos[country_code].append(combo_index)
-
-    if private_combo and private_combo in COUNTRY_CODES:
-        name, flag, _ = COUNTRY_CODES[private_combo]
-        buttons.append(color_button(f"{flag} {name} (Private)", f"country_{private_combo}_1", "success"))
-
-    for country_code, indices in country_combos.items():
-        if country_code in COUNTRY_CODES and country_code != private_combo:
-            name, flag, _ = COUNTRY_CODES[country_code]
-            for idx in indices:
-                if len(indices) == 1:
-                    btn_text = f"{flag} {name}"
-                else:
-                    btn_text = f"{flag} {name} ({idx})"
-                buttons.append(color_button(btn_text, f"country_{country_code}_{idx}", "primary"))
-
-    for i in range(0, len(buttons), 2):
-        markup.row(*buttons[i:i+2])
-
-    if is_admin(call.from_user.id):
-        markup.add(color_button("🔐 Admin Panel", "admin_panel", "danger"))
-
-    fancy_text = (
-        "<b>❍<u> Taker2 OTP</u>❍</b>\n\n"
-        "<b>🔋<u>مـنـور بـوت ارقـام يـ صـديـقـي😁✌️</u></b>\n\n"
-        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=6073745914'>.⤹​𝗠𝗘𝗗𝗢 𝗕𝗘𝗡 𝗔𝗦𝗬𝗨𝗧⤾.</a></b>\n\n"
-        "<b>────────────────────</b>\n"
-        "<b><u>اخـتـر الــدولـة الـتـي تـريـدهـا مـن الـزر الاسـفـل</u> ⬇️</b>"
-    )
-
-    try:
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=fancy_text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
-        bot.answer_callback_query(call.id)
-    except Exception as e:
-        print(f"Edit failed: {e}")
-        bot.send_message(call.message.chat.id, fancy_text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
-        bot.answer_callback_query(call.id)
-
-# ======================
-# 🔐 لوحة التحكم الإدارية
-# ======================
-user_states = {}
-
-def admin_main_menu():
-    markup = types.InlineKeyboardMarkup()
-    
-    status_icon = "🟢" if not is_maintenance_mode() else "🔴"
-    status_text = "الآن: يعمل بنجاح" if not is_maintenance_mode() else "الآن: قيد الصيانة"
-    markup.add(color_button(f"{status_icon} {status_text}", "toggle_maintenance", "primary"))
-    
-    markup.row(
-        color_button("📥 إضافة كومبو", "admin_add_combo", "success"),
-        color_button("🗑️ حذف كومبو", "admin_del_combo", "danger")
-    )
-    
-    markup.row(
-        color_button("📊 الإحصائيات", "admin_stats", "primary"),
-        color_button("📄 تقرير شامل", "admin_full_report", "primary")
-    )
-    
-    markup.row(
-        color_button("📢 إذاعة عامة", "admin_broadcast_all", "success"),
-        color_button("📨 إذاعة مخصصة", "admin_broadcast_user", "primary")
-    )
-    
-    markup.row(
-        color_button("🚫 حظر", "admin_ban", "danger"),
-        color_button("✅ إلغاء حظر", "admin_unban", "success"),
-        color_button("👤 معلومات", "admin_user_info", "primary")
-    )
-    
-    markup.row(
-        color_button("🔗 إشتراك", "admin_force_sub", "primary"),
-        color_button("🖥️ اللوحات", "admin_dashboards", "primary"),
-        color_button("🔑 برايفت", "admin_private_combo", "primary")
-    )
-
-    markup.add(color_button("🔙 مغادرة لوحة التحكم", "back_to_countries", "danger"))
-    
-    return markup
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_panel")
-def show_admin_panel(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "⚠️ عذراً، هذا القسم للمطورين فقط.", show_alert=True)
-        return
-
-    admin_text = (
-        "<b>❍─── <u>Taker2 OTP</u> ───❍</b>\n\n"
-        "<b>👋  مــــرحـــــبا بــــك أيـــــهــا الـــمـــطــــور فــي لوحــــة الــــتـــحــكــم.</b>\n\n" 
-        "<b>⚙️ يمكنك التحكم في كامل وظائف البوت من هنا.</b>\n"
-        "<b>⚠️ تنبيه: أي تغيير في الإعدادات يؤثر على المستخدمين فوراً.</b>\n\n"
-        "<b>────────────────────</b>\n"
-        "<b>إحصائيات سريعة:</b>\n"
-        "<b>• حالة السيرفر: <u>Online</u> ✅</b>\n"
-        f"<b>• الوقت الحالي: <u>{datetime.now().strftime('%H:%M')}</u></b>\n"
-        "<b>────────────────────</b>"
-    )
-    
-    try:
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=admin_text, parse_mode="HTML", reply_markup=admin_main_menu(), disable_web_page_preview=True)
-    except Exception as e:
-        print(f"Admin Panel Error: {e}")
-
-# ======================
-# إدارة الاشتراك الإجباري
-# ======================
-@bot.callback_query_handler(func=lambda call: call.data == "admin_force_sub")
-def admin_force_sub(call):
-    if not is_admin(call.from_user.id):
-        return
-
-    channels = get_all_force_sub_channels(enabled_only=False)
-    text = "⚙️ إدارة قنوات الاشتراك الإجباري:\n"
-    text += f"إجمالي القنوات: {len(channels)}\n"
-
-    markup = types.InlineKeyboardMarkup()
-    for ch_id, url, desc in channels:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT enabled FROM force_sub_channels WHERE id=?", (ch_id,))
-        enabled = c.fetchone()[0]
-        conn.close()
-        status = "✅" if enabled else "❌"
-        btn_text = f"{status} {desc or url[:25]}"
-        markup.add(color_button(btn_text, f"edit_force_ch_{ch_id}", "primary"))
-
-    markup.add(color_button("➕ إضافة قناة", "add_force_ch", "success"))
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
-
-# ======================
-# إدارة الكومبوهات (إضافة وحذف)
-# ======================
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_add_combo")
-def admin_add_combo(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_combo_file"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(
-            "📤 أرسل ملف الكومبو بصيغة TXT\n\n"
-            "📌 الشكل الصحيح للملف:\n"
-            "كل رقم في سطر منفصل\n\n"
-            "مثال:\n"
-            "584162105744\n"
-            "584162206645\n"
-            "584161959282",
-            call.message.chat.id,
-            call.message.message_id,
-            reply_markup=markup
-        )
-    except:
-        bot.send_message(
-            call.message.chat.id,
-            "📤 أرسل ملف الكومبو بصيغة TXT\n\n"
-            "📌 الشكل الصحيح للملف:\n"
-            "كل رقم في سطر منفصل",
-            reply_markup=markup
-        )
-    bot.answer_callback_query(call.id)
-
-
-@bot.message_handler(content_types=['document'])
-def handle_combo_file(message):
-    if not is_admin(message.from_user.id):
-        bot.reply_to(message, "❌ هذا الأمر للمطورين فقط")
-        return
-    
-    if user_states.get(message.from_user.id) != "waiting_combo_file":
-        bot.reply_to(message, "❌ من فضلك استخدم زر 'إضافة كومبو' أولاً")
-        return
-    
-    try:
-        bot.send_chat_action(message.chat.id, 'typing')
-        
-        file_info = bot.get_file(message.document.file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        
-        try:
-            content = downloaded_file.decode('utf-8')
-        except:
-            content = downloaded_file.decode('latin-1')
-        
-        lines = []
-        for line in content.splitlines():
-            line = line.strip()
-            if line:
-                clean_line = re.sub(r'[^0-9]', '', line)
-                if clean_line:
-                    lines.append(clean_line)
-        
-        if len(lines) == 0:
-            bot.reply_to(message, "❌ الملف فارغ أو لا يحتوي على أرقام صالحة!")
-            return
-        
-        first_num = lines[0]
-        country_code = None
-        
-        sorted_codes = sorted(COUNTRY_CODES.keys(), key=len, reverse=True)
-        for code in sorted_codes:
-            if first_num.startswith(code):
-                country_code = code
-                break
-        
-        if not country_code:
-            bot.reply_to(
-                message, 
-                f"❌ لا يمكن تحديد الدولة من الرقم: {first_num}\n\n"
-                f"تأكد أن الرقم يبدأ بكود الدولة الصحيح\n"
-                f"مثال: 584162105744 (كود فنزويلا 58)"
-            )
-            return
-        
-        save_combo(country_code, lines)
-        name, flag, _ = COUNTRY_CODES[country_code]
-        
-        sample = "\n".join([f"• {num}" for num in lines[:5]])
-        if len(lines) > 5:
-            sample += f"\n• ... و {len(lines) - 5} أرقام أخرى"
-        
-        bot.reply_to(
-            message, 
-            f"✅ <b>تم حفظ الكومبو بنجاح!</b>\n\n"
-            f"🌍 <b>الدولة:</b> {flag} {name}\n"
-            f"🔢 <b>كود الدولة:</b> +{country_code}\n"
-            f"📊 <b>عدد الأرقام:</b> {len(lines)}\n\n"
-            f"📋 <b>عينة من الأرقام:</b>\n{sample}\n\n"
-            f"✨ يمكنك الآن استخدام /start لرؤية الدولة في القائمة",
-            parse_mode="HTML"
-        )
-        
-        del user_states[message.from_user.id]
-        
-    except Exception as e:
-        bot.reply_to(message, f"❌ خطأ أثناء معالجة الملف:\n{str(e)}")
-        print(f"Error in handle_combo_file: {e}")
-        traceback.print_exc()
-
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_del_combo")
-def admin_del_combo(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    
-    combos = get_all_combos()
-    if not combos:
-        bot.answer_callback_query(call.id, "📭 لا توجد كومبوهات لحذفها!", show_alert=True)
-        return
-    
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    country_combos = {}
-    
-    for country_code, combo_index in combos:
-        if country_code not in country_combos:
-            country_combos[country_code] = []
-        country_combos[country_code].append(combo_index)
-    
-    for country_code, indices in country_combos.items():
-        if country_code in COUNTRY_CODES:
-            name, flag, _ = COUNTRY_CODES[country_code]
-            for idx in indices:
-                if len(indices) == 1:
-                    btn_text = f"🗑️ {flag} {name}"
-                else:
-                    btn_text = f"🗑️ {flag} {name} (كومبو {idx})"
-                markup.add(color_button(btn_text, f"del_combo_{country_code}_{idx}", "danger"))
-    
-    markup.add(color_button("🔙 رجوع", "admin_panel", "primary"))
-    
-    try:
-        bot.edit_message_text(
-            "🗑️ <b>اختر الكومبو الذي تريد حذفه:</b>",
-            call.message.chat.id,
-            call.message.message_id,
-            reply_markup=markup,
-            parse_mode="HTML"
-        )
-    except:
-        bot.send_message(
-            call.message.chat.id,
-            "🗑️ <b>اختر الكومبو الذي تريد حذفه:</b>",
-            reply_markup=markup,
-            parse_mode="HTML"
-        )
-    bot.answer_callback_query(call.id)
-
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("del_combo_"))
-def confirm_del_combo(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    
-    parts = call.data.split("_")
-    country_code = parts[2]
-    combo_index = int(parts[3]) if len(parts) > 3 else 1
-    
-    success = delete_combo(country_code, combo_index)
-    name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
-    
-    if success:
-        bot.answer_callback_query(call.id, f"✅ تم حذف كومبو {flag} {name} بنجاح!", show_alert=True)
-    else:
-        bot.answer_callback_query(call.id, f"❌ فشل حذف الكومبو!", show_alert=True)
-    
-    admin_del_combo(call)
-
-# ======================
-# دوال إضافية
-# ======================
-
-def get_available_numbers(country_code, combo_index=1, user_id=None):
-    all_numbers = get_combo(country_code, combo_index, user_id)
-    if not all_numbers:
-        return []
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT assigned_number FROM users WHERE assigned_number IS NOT NULL AND assigned_number != ''")
-    used_numbers = set()
-    for row in c.fetchall():
-        try:
-            nums = json.loads(row[0])
-            if isinstance(nums, list):
-                used_numbers.update(nums)
-            else:
-                used_numbers.add(row[0])
-        except:
-            used_numbers.add(row[0])
-    conn.close()
-    available = [num for num in all_numbers if num not in used_numbers]
-    return available
 
 def clean_html(text):
     if not text:
@@ -1419,41 +786,37 @@ def detect_service(message):
             return "#TW"
     return "Unknown"
 
-def format_message(date_str, number, sms):
-    country_name, country_flag, country_code = get_country_info(number)
-    masked_num = mask_number(number)
-    otp_code = extract_otp(sms)
-    service = detect_service(sms)
-    
-    message = f"""✨ <b><u>OTP RECEIVED!</u></b> ✨
-
-🌍 <b>Country:</b> {country_name} {country_flag}
-⚙️ <b>Service:</b> {service}
-📞 <b>Number:</b> {masked_num}
-🕒 <b>Time:</b> {date_str}
-🔐 <b>Code:</b> <code>{otp_code}</code>
-
-📩 <b>Full Message:</b>
-{safe_html(sms)}</b>
-
-────────────────────</b>"""
-    
-    return message
+# ======================
+# 📩 دوال الإرسال
+# ======================
+def delete_message_after_delay(chat_id, message_id, delay=180):
+    time.sleep(delay)
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/deleteMessage"
+        payload = {"chat_id": chat_id, "message_id": message_id}
+        requests.post(url, data=payload)
+    except Exception as e:
+        print(f"❌ فشل حذف الرسالة: {e}")
 
 def send_to_telegram_group(text, otp_code):
     success_count = 0
     try:
         keyboard = {
             "inline_keyboard": [
-                [{"text": "🤖 دخول البوت", "url": f"https://t.me/{bot.get_me().username}"}],
-                [{"text": "📢 قناة البوت", "url": "https://t.me/numhj"}],
-                [{"text": "👑 المطور", "url": "https://t.me/hackerTaker"}]
+                [{"text": f"✌🏻 {otp_code}", "copy_text": {"text": str(otp_code)}}],
+                [
+                    {"text": "💬 𝑆𝑀𝑆 ↗️", "url": "https://t.me/numhj"},
+                    {"text": "𝐵𝑂𝑇 ↗️", "url": "https://t.me/DEVIL_NUMBER_OTP_BOT"}
+                ],
+                [
+                    {"text": "𓆩𝘽𝙤𝙩 𝘾𝙝𝙖𝙣𝙣𝙚𝙡𓆪 ↗️", "url": "https://t.me/numhj"}
+                ]
             ]
         }
     except Exception as e:
-        print(f"Keyboard error: {e}")
+        print(f"❌ خطأ في إعداد الأزرار: {e}")
         return False
-    
+
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     for chat_id in CHAT_IDS:
         try:
@@ -1472,12 +835,16 @@ def send_to_telegram_group(text, otp_code):
             print(f"Error: {e}")
     return success_count > 0
 
-def delete_message_after_delay(chat_id, message_id, delay=300):
-    time.sleep(delay)
-    try:
-        requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteMessage", data={"chat_id": chat_id, "message_id": message_id})
-    except Exception as e:
-        print(f"Delete error: {e}")
+def format_message(date_str, number, sms):
+    country_name, country_flag, country_code = get_country_info(number)
+    masked_num = mask_number(number)
+    otp_code = extract_otp(sms)
+    service = detect_service(sms)
+    
+    message = f"""╭───────────────╮
+│ {country_flag} {service} {masked_num}
+╰───────────────╯"""
+    return message
 
 def send_otp_to_user_and_group(date_str, number, sms):
     otp_code = extract_otp(sms)
@@ -1490,21 +857,12 @@ def send_otp_to_user_and_group(date_str, number, sms):
         try:
             markup = types.InlineKeyboardMarkup()
             markup.row(
-                color_url_button("𝑂𝑊𝑁𝐸𝑅⚙️", "https://t.me/numhj", "primary"),
-                color_url_button("𓆩𝘽𝙤𝙩 𝘾𝙝𝙖𝙣𝙣𝙚𝙡𓆪", "https://t.me/numhj", "primary")
+                types.InlineKeyboardButton("𝑂𝑊𝑁𝐸𝑅⚙️", url="https://t.me/DEVIL_KING_ELASLY"),
+                types.InlineKeyboardButton("𓆩𝘽𝙤𝙩 𝘾𝙝𝙖𝙣𝙣𝙚𝙡𓆪", url="https://t.me/DEVIL_NUM")
             )
             bot.send_message(
                 user_id,
-                f"""✨ <b><u> Taker2 OTP</u></b>\n
-🌍 <b>Country:</b> {safe_html(country_name)} {country_flag}
-⚙ <b>Service:</b> {safe_html(service)}
-☎ <b>Number:</b> {safe_html(number)}
-🕒 <b>Time:</b> {safe_html(date_str)}
-
-🔐 <b>Code:</b> <code>{safe_html(otp_code)}</code>
-
-📩 <b>Full Message:</b>
-{safe_html(sms)}</b>""",
+                f"""✨ <b><u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u></b>\n🌍 <b>Country:</b> {safe_html(country_name)} {country_flag}\n⚙ <b>Service:</b> {safe_html(service)}\n☎ <b>Number:</b> {safe_html(number)}\n🕒 <b>Time:</b> {safe_html(date_str)}\n\n🔐 <b>Code:</b> {safe_html(otp_code)}\n\n<b>كود {safe_html(service)} {safe_html(otp_code[:3])}-{safe_html(otp_code[3:])} ؟</b>""",
                 reply_markup=markup,
                 parse_mode="HTML"
             )
@@ -1514,15 +872,358 @@ def send_otp_to_user_and_group(date_str, number, sms):
     text = format_message(date_str, number, sms)
     send_to_telegram_group(text, otp_code)
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("copy_"))
-def handle_copy_button(call):
-    otp_code = call.data.split("_", 1)[1]
-    bot.answer_callback_query(call.id, f"✅ تم نسخ الكود: {otp_code}", show_alert=True)
+# ======================
+# 🏠 أوامر البوت
+# ======================
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    if is_admin(user_id) and not IVASMS_DASHBOARD.get('is_logged_in', False):
+        mar = types.InlineKeyboardMarkup(row_width=1)
+        mar.add(
+            types.InlineKeyboardButton("💻 شرح جلب الكوكيز من PC", callback_data="cookies_guide_pc"),
+            types.InlineKeyboardButton("📱 شرح جلب الكوكيز من الفون", callback_data="cookies_guide_phone"),
+            types.InlineKeyboardButton("📤 ابعت الكوكيز الجديدة", callback_data="cookies_send")
+        )
+        bot.send_message(chat_id, "⚠️ <b>الكوكيز منتهية!</b>\n\nالبوت مش شغال دلوقتي.\nجدد الكوكيز عشان يكمل 👇", reply_markup=mar, parse_mode="HTML")
+        return
+
+    if not is_admin(user_id) and not IVASMS_DASHBOARD.get('is_logged_in', False):
+        maintenance_caption = (
+            "<b>❍─── <u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u> ───❍</b>\n\n"
+            "<b>⚠️ عذراً عزيزي المستخدم..</b>\n"
+            "<b>البوت الآن في وضع الصيانة لتحديث الخدمات.</b>\n\n"
+            "<b>⏳ يرجى المحاولة مرة أخرى لاحقاً.</b>\n"
+            "<b>────────────────────</b>"
+        )
+        maintenance_photo = "https://i.ibb.co/2352v1FN/file-000000004f20720aaa70039fcd26faab-1.png"
+        try:
+            bot.send_photo(chat_id, maintenance_photo, caption=maintenance_caption, parse_mode="HTML")
+        except Exception:
+            bot.send_message(chat_id, maintenance_caption, parse_mode="HTML")
+        return
+
+    if is_maintenance_mode() and not is_admin(user_id):
+        maintenance_caption = (
+            "<b>❍─── <u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u> ───❍</b>\n\n"
+            "<b>⚠️ عذراً عزيزي المستخدم..</b>\n"
+            "<b>البوت الآن في وضع الصيانة لتحديث الخدمات.</b>\n\n"
+            "<b>⏳ يرجى المحاولة مرة أخرى لاحقاً.</b>\n"
+            "<b>────────────────────</b>"
+        )
+        maintenance_photo = "https://i.ibb.co/2352v1FN/file-000000004f20720aaa70039fcd26faab-1.png"
+        try:
+            bot.send_photo(chat_id, maintenance_photo, caption=maintenance_caption, parse_mode="HTML")
+        except:
+            bot.send_message(chat_id, maintenance_caption, parse_mode="HTML")
+        return
+
+    if is_banned(user_id):
+        bot.reply_to(message, "<b>🚫 عذراً، لقد تم حظرك من استخدام البوت.</b>", parse_mode="HTML")
+        return
+
+    if not force_sub_check(user_id):
+        markup = force_sub_markup()
+        if markup:
+            bot.send_message(chat_id, "<b>🔒 يجب الاشتراك في القنوات لاستخدام البوت.</b>", parse_mode="HTML", reply_markup=markup)
+        else:
+            bot.send_message(chat_id, "<b>🔒 الاشتراك الإجباري مفعل لكن لم يتم تحديد قناة!</b>", parse_mode="HTML")
+        return
+
+    if not get_user(user_id):
+        save_user(user_id, username=message.from_user.username or "", first_name=message.from_user.first_name or "", last_name=message.from_user.last_name or "")
+        for admin in ADMIN_IDS:
+            try:
+                caption = f"🆕 <b>ضيف جديد نور بوتك :</b>\n<b>🆔:</b> <code>{user_id}</code>\n<b>👤:</b> @{safe_html(message.from_user.username or 'None')}\n<b>الاسم:</b> {safe_html(message.from_user.first_name or '')}"
+                bot.send_message(admin, caption, parse_mode="HTML")
+            except:
+                pass
+    
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    buttons = []
+    user_data = get_user(user_id)
+    private_combo = user_data[7] if user_data else None
+    all_combos = get_all_combos()
+
+    country_combos = {}
+    for country_code, combo_index in all_combos:
+        if country_code not in country_combos:
+            country_combos[country_code] = []
+        country_combos[country_code].append(combo_index)
+
+    if private_combo and private_combo in COUNTRY_CODES:
+        name, flag, _ = COUNTRY_CODES[private_combo]
+        buttons.append(types.InlineKeyboardButton(f"{flag} {name} (Private)", callback_data=f"country_{private_combo}_1"))
+
+    for country_code, indices in country_combos.items():
+        if country_code in COUNTRY_CODES and country_code != private_combo:
+            name, flag, _ = COUNTRY_CODES[country_code]
+            for idx in indices:
+                if len(indices) == 1:
+                    btn_text = f"{flag} {name}"
+                else:
+                    btn_text = f"{flag} {name} ({idx})"
+                buttons.append(types.InlineKeyboardButton(btn_text, callback_data=f"country_{country_code}_{idx}"))
+
+    for i in range(0, len(buttons), 2):
+        markup.row(*buttons[i:i+2])
+
+    if is_admin(user_id):
+        markup.add(types.InlineKeyboardButton("🔐 Admin Panel", callback_data="admin_panel"))
+
+    fancy_text = (
+        "<b>❍<u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u>❍</b>\n\n"
+        "<b>🔋<u>مـنـور بـوت ارقـام يـ صـديـقـي😁✌️</u></b>\n\n"
+        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=8215895035'>.⤹​ℎ𝑎𝑐𝑘𝑒𝑟 𝑇𝑎𝑘𝑒𝑟⤾.</a></b>\n\n"
+        "<b>────────────────────</b>\n"
+        "<b><u>اخـتـر الــدولـة الـتـي تـريـدهـا مـن الـزر الاسـفـل</u> ⬇️</b>"
+    )
+
+    bot.send_message(chat_id, fancy_text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
 
 # ======================
-# نظام الكوكيز المتكامل (أمر /cookies + شرح + استقبال)
+# 📌 معالجات الكال باك
 # ======================
+@bot.callback_query_handler(func=lambda call: call.data == "check_sub")
+def check_subscription(call):
+    if force_sub_check(call.from_user.id):
+        bot.answer_callback_query(call.id, "✅ تم التحقق! يمكنك استخدام البوت الآن.", show_alert=True)
+        send_welcome(call.message)
+    else:
+        bot.answer_callback_query(call.id, "❌ لــســـه مــشــتــركـــتــش يــا حــب!", show_alert=True)
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith("country_"))
+def handle_country_selection(call):
+    user_id = call.from_user.id
+    chat_id = call.message.chat.id
+    message_id = call.message.message_id
+
+    if is_banned(user_id):
+        bot.answer_callback_query(call.id, "🚫 You are banned.", show_alert=True)
+        return
+    if not force_sub_check(user_id):
+        markup = force_sub_markup()
+        bot.send_message(chat_id, "<b>🔒خــش الـــقــنـاة عــشــــان تـــعــرف تــســـتـــخــدم الـــبــوت.</b>", parse_mode="HTML", reply_markup=markup)
+        return
+
+    parts = call.data.split("_")
+    country_code = parts[1]
+    combo_index = int(parts[2]) if len(parts) > 2 else 1
+    
+    available_numbers = get_available_numbers(country_code, combo_index, user_id)
+    
+    if not available_numbers:
+        error_msg = "<b>❌ نعتذر، جميع الأرقام قيد الاستخدام حالياً لهذه الدولة.</b>"
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("🔙 العودة لاختيار دولة أخرى", callback_data="back_to_countries"))
+        bot.edit_message_text(error_msg, chat_id, message_id, reply_markup=markup, parse_mode="HTML")
+        return
+
+    assigned = random.choice(available_numbers)
+    old_user = get_user(user_id)
+    if old_user and old_user[5]:
+        release_number(old_user[5])
+    
+    assign_number_to_user(user_id, assigned)
+    save_user(user_id, country_code=country_code, assigned_number=assigned)
+    
+    name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
+    msg_text = (
+        f"<b>◈ Number:</b> <code>+{assigned}</code>\n"
+        f"<b>◈ Country:</b> {flag} {name}\n"
+        f"<b>◈ Combo:</b> #{combo_index}\n"
+        f"<b>◈ Status :</b> ⏳ Waiting for SMS"
+    )
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(" خــش جــــروب الاكـــــواد يــا حـــب🔱", url="https://t.me/numhj"))
+    markup.row(
+        types.InlineKeyboardButton("🔄 Change Number", callback_data=f"change_num_{country_code}_{combo_index}"),
+        types.InlineKeyboardButton("🔙 Back", callback_data="back_to_countries")
+    )
+
+    try:
+        bot.edit_message_text(text=msg_text, chat_id=chat_id, message_id=message_id, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+        bot.answer_callback_query(call.id, "✅ تم استلام الرقم بنجاح")
+    except Exception as e:
+        print(f"Error: {e}")
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("change_num_"))
+def change_number(call):
+    user_id = call.from_user.id
+    
+    if is_banned(user_id):
+        return
+    if not force_sub_check(user_id):
+        return
+        
+    parts = call.data.split("_")
+    country_code = parts[2]
+    combo_index = int(parts[3]) if len(parts) > 3 else 1
+    
+    available_numbers = get_available_numbers(country_code, combo_index, user_id)
+    
+    if not available_numbers:
+        bot.answer_callback_query(call.id, "❌ نعتذر، جميع الأرقام قيد الاستخدام حالياً.", show_alert=True)
+        return
+
+    old_user = get_user(user_id)
+    if old_user and old_user[5]:
+        release_number(old_user[5])
+        
+    assigned = random.choice(available_numbers)
+    assign_number_to_user(user_id, assigned)
+    save_user(user_id, assigned_number=assigned)
+    
+    name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
+    msg_text = (
+        f"<b>◈ Number:</b> <code>+{assigned}</code>\n"
+        f"<b>◈ Country:</b> {flag} {name}\n"
+        f"<b>◈ Combo:</b> #{combo_index}\n"
+        f"<b>◈ Status :</b> ⏳ Waiting for SMS"
+    )
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("اشـتـرك هـنـا يـحـب🔱", url="https://t.me/numhj"))
+    markup.row(
+        types.InlineKeyboardButton("🔄 Change Number", callback_data=f"change_num_{country_code}_{combo_index}"),
+        types.InlineKeyboardButton("🔙 Back", callback_data="back_to_countries")
+    )
+
+    try:
+        bot.edit_message_text(text=msg_text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+        bot.answer_callback_query(call.id, "تـم تـغـيـر رقـم يـحـب💯")
+    except Exception as e:
+        print(f"Error in change_number: {e}")
+        bot.answer_callback_query(call.id)
+
+@bot.callback_query_handler(func=lambda call: call.data == "back_to_countries")
+def back_to_countries(call):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    buttons = []
+    
+    user = get_user(call.from_user.id)
+    private_combo = user[7] if user else None
+    all_combos = get_all_combos()
+
+    country_combos = {}
+    for country_code, combo_index in all_combos:
+        if country_code not in country_combos:
+            country_combos[country_code] = []
+        country_combos[country_code].append(combo_index)
+
+    if private_combo and private_combo in COUNTRY_CODES:
+        name, flag, _ = COUNTRY_CODES[private_combo]
+        buttons.append(types.InlineKeyboardButton(f"{flag} {name} (Private)", callback_data=f"country_{private_combo}_1"))
+
+    for country_code, indices in country_combos.items():
+        if country_code in COUNTRY_CODES and country_code != private_combo:
+            name, flag, _ = COUNTRY_CODES[country_code]
+            for idx in indices:
+                if len(indices) == 1:
+                    btn_text = f"{flag} {name}"
+                else:
+                    btn_text = f"{flag} {name} ({idx})"
+                buttons.append(types.InlineKeyboardButton(btn_text, callback_data=f"country_{country_code}_{idx}"))
+
+    for i in range(0, len(buttons), 2):
+        markup.row(*buttons[i:i+2])
+
+    if is_admin(call.from_user.id):
+        markup.add(types.InlineKeyboardButton("🔐 Admin Panel", callback_data="admin_panel"))
+
+    fancy_text = (
+        "<b>❍<u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u>❍</b>\n\n"
+        "<b>🔋<u>مـنـور بـوت ارقـام يـ صـديـقـي😁✌️</u></b>\n\n"
+        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=8215895035'>.⤹​ℎ𝑎𝑐𝑘𝑒𝑟 𝑇𝑎𝑘𝑒𝑟⤾.</a></b>\n\n"
+        "<b>────────────────────</b>\n"
+        "<b><u>اخـتـر الــدولـة الـتـي تـريـدهـا مـن الـزر الاسـفـل</u> ⬇️</b>"
+    )
+
+    try:
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=fancy_text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
+        bot.answer_callback_query(call.id)
+    except Exception as e:
+        print(f"Edit failed: {e}")
+        bot.send_message(call.message.chat.id, fancy_text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
+        bot.answer_callback_query(call.id)
+
+# ======================
+# 🔐 لوحة التحكم الإدارية الكاملة (الأصلية)
+# ======================
+def admin_main_menu():
+    markup = types.InlineKeyboardMarkup()
+    
+    # 1. زر حالة البوت
+    status_icon = "🟢" if not is_maintenance_mode() else "🔴"
+    status_text = "الآن: يعمل بنجاح" if not is_maintenance_mode() else "الآن: قيد الصيانة"
+    markup.add(types.InlineKeyboardButton(f"{status_icon} {status_text}", callback_data="toggle_maintenance"))
+    
+    # 2. أزرار الكومبوهات
+    markup.row(
+        types.InlineKeyboardButton("📥 إضافة كومبو", callback_data="admin_add_combo"),
+        types.InlineKeyboardButton("🗑️ حذف كومبو", callback_data="admin_del_combo")
+    )
+    
+    # 3. أزرار الإحصائيات والتقارير
+    markup.row(
+        types.InlineKeyboardButton("📊 الإحصائيات", callback_data="admin_stats"),
+        types.InlineKeyboardButton("📄 تقرير شامل", callback_data="admin_full_report")
+    )
+    
+    # 4. أزرار الإذاعة
+    markup.row(
+        types.InlineKeyboardButton("📢 إذاعة عامة", callback_data="admin_broadcast_all"),
+        types.InlineKeyboardButton("📨 إذاعة مخصصة", callback_data="admin_broadcast_user")
+    )
+    
+    # 5. أزرار إدارة المستخدمين
+    markup.row(
+        types.InlineKeyboardButton("🚫 حظر", callback_data="admin_ban"),
+        types.InlineKeyboardButton("✅ إلغاء حظر", callback_data="admin_unban"),
+        types.InlineKeyboardButton("👤 معلومات", callback_data="admin_user_info")
+    )
+    
+    # 6. أزرار الإعدادات المتقدمة (الأصلية)
+    markup.row(
+        types.InlineKeyboardButton("🔗 إشتراك إجباري", callback_data="admin_force_sub"),
+        types.InlineKeyboardButton("🖥️ اللوحات", callback_data="admin_dashboards"),
+        types.InlineKeyboardButton("🔑 برايفت", callback_data="admin_private_combo")
+    )
+
+    # 7. زر الخروج
+    markup.add(types.InlineKeyboardButton("🔙 مغادرة لوحة التحكم", callback_data="back_to_countries"))
+    
+    return markup
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_panel")
+def show_admin_panel(call):
+    if not is_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, "⚠️ عذراً، هذا القسم للمطورين فقط.", show_alert=True)
+        return
+
+    admin_text = (
+        "<b>❍─── <u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u> ───❍</b>\n\n"
+        "<b>👋  مــــرحـــــبا بــــك أيـــــهــا الـــمـــطــــور فــي لوحــــة الــــتـــحــكــم.</b>\n\n" 
+        "<b>⚙️ يمكنك التحكم في كامل وظائف البوت من هنا.</b>\n"
+        "<b>⚠️ تنبيه: أي تغيير في الإعدادات يؤثر على المستخدمين فوراً.</b>\n\n"
+        "<b>────────────────────</b>\n"
+        "<b>إحصائيات سريعة:</b>\n"
+        "<b>• حالة السيرفر: <u>Online</u> ✅</b>\n"
+        f"<b>• الوقت الحالي: <u>{datetime.now().strftime('%H:%M')}</u></b>\n"
+        "<b>────────────────────</b>"
+    )
+    
+    try:
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=admin_text, parse_mode="HTML", reply_markup=admin_main_menu(), disable_web_page_preview=True)
+    except Exception as e:
+        print(f"Admin Panel Error: {e}")
+
+# ======================
+# 🍪 نظام الكوكيز (الأوامر)
+# ======================
 @bot.message_handler(commands=['cookies'])
 def cmd_cookies(message):
     if message.from_user.id not in ADMIN_IDS:
@@ -1533,21 +1234,14 @@ def cmd_cookies(message):
         types.InlineKeyboardButton("📱 شرح جلب الكوكيز من الفون", callback_data="cookies_guide_phone"),
         types.InlineKeyboardButton("📤 ابعت الكوكيز الجديدة", callback_data="cookies_send")
     )
-    bot.reply_to(message,
-        "🍪 <b>تحديث الكوكيز</b>\n\nاختر طريقة جلب الكوكيز حسب جهازك 👇",
-        reply_markup=mar,
-        parse_mode="HTML"
-    )
+    bot.reply_to(message, "🍪 <b>تحديث الكوكيز</b>\n\nاختر طريقة جلب الكوكيز حسب جهازك 👇", reply_markup=mar, parse_mode="HTML")
 
-@bot.callback_query_handler(func=lambda call: call.data in [
-    "cookies_guide_pc", "cookies_guide_phone", "cookies_send", "cookies_main"
-])
+@bot.callback_query_handler(func=lambda call: call.data in ["cookies_guide_pc", "cookies_guide_phone", "cookies_send", "cookies_main"])
 def cookies_callback(call):
     if call.from_user.id not in ADMIN_IDS:
         return
-
     chat_id = call.message.chat.id
-    msg_id  = call.message.message_id
+    msg_id = call.message.message_id
 
     if call.data == "cookies_main":
         mar = types.InlineKeyboardMarkup(row_width=1)
@@ -1557,106 +1251,29 @@ def cookies_callback(call):
             types.InlineKeyboardButton("📤 ابعت الكوكيز الجديدة", callback_data="cookies_send")
         )
         try:
-            bot.edit_message_text(
-                "🍪 <b>تحديث الكوكيز</b>\n\nاختر طريقة جلب الكوكيز حسب جهازك 👇",
-                chat_id, msg_id, reply_markup=mar, parse_mode="HTML"
-            )
+            bot.edit_message_text("🍪 <b>تحديث الكوكيز</b>\n\nاختر طريقة جلب الكوكيز حسب جهازك 👇", chat_id, msg_id, reply_markup=mar, parse_mode="HTML")
         except Exception:
-            bot.send_message(chat_id,
-                "🍪 <b>تحديث الكوكيز</b>\n\nاختر طريقة جلب الكوكيز حسب جهازك 👇",
-                reply_markup=mar, parse_mode="HTML"
-            )
-
+            bot.send_message(chat_id, "🍪 <b>تحديث الكوكيز</b>\n\nاختر طريقة جلب الكوكيز حسب جهازك 👇", reply_markup=mar, parse_mode="HTML")
     elif call.data == "cookies_guide_pc":
         mar = types.InlineKeyboardMarkup(row_width=1)
-        mar.add(
-            types.InlineKeyboardButton("📤 ابعت الكوكيز دلوقتي", callback_data="cookies_send"),
-            types.InlineKeyboardButton("🔙 رجوع", callback_data="cookies_main")
-        )
+        mar.add(types.InlineKeyboardButton("📤 ابعت الكوكيز دلوقتي", callback_data="cookies_send"), types.InlineKeyboardButton("🔙 رجوع", callback_data="cookies_main"))
         try:
-            bot.edit_message_text(
-                "💻 <b>جلب الكوكيز من PC أو لاب توب</b>\n\n"
-                "1️⃣ افتح أي متصفح (Chrome / Firefox / Edge)\n\n"
-                "2️⃣ افتح الموقع:\n"
-                "<code>https://www.ivasms.com/login</code>\n\n"
-                "3️⃣ سجل دخول بالإيميل والباسورد\n\n"
-                "4️⃣ افتح متجر الإضافات وابحث عن:\n"
-                "<code>Cookie-Editor</code> واضغط Add\n\n"
-                "5️⃣ ارجع للموقع وافتح إضافة Cookie-Editor\n\n"
-                "6️⃣ اضغط <b>Export</b> ← <b>Export as JSON</b>\n"
-                "الكوكيز هتتنسخ تلقائياً\n\n"
-                "7️⃣ ارجع للبوت واضغط الزرار 👇",
-                chat_id, msg_id, reply_markup=mar, parse_mode="HTML"
-            )
+            bot.edit_message_text("💻 <b>جلب الكوكيز من PC أو لاب توب</b>\n\n1️⃣ افتح أي متصفح (Chrome / Firefox / Edge)\n\n2️⃣ افتح الموقع:\n<code>https://www.ivasms.com/login</code>\n\n3️⃣ سجل دخول بالإيميل والباسورد\n\n4️⃣ افتح متجر الإضافات وابحث عن:\n<code>Cookie-Editor</code> واضغط Add\n\n5️⃣ ارجع للموقع وافتح إضافة Cookie-Editor\n\n6️⃣ اضغط <b>Export</b> ← <b>Export as JSON</b>\nالكوكيز هتتنسخ تلقائياً\n\n7️⃣ ارجع للبوت واضغط الزرار 👇", chat_id, msg_id, reply_markup=mar, parse_mode="HTML")
         except Exception:
             pass
-
     elif call.data == "cookies_guide_phone":
         mar = types.InlineKeyboardMarkup(row_width=1)
-        mar.add(
-            types.InlineKeyboardButton("📤 ابعت الكوكيز دلوقتي", callback_data="cookies_send"),
-            types.InlineKeyboardButton("🔙 رجوع", callback_data="cookies_main")
-        )
+        mar.add(types.InlineKeyboardButton("📤 ابعت الكوكيز دلوقتي", callback_data="cookies_send"), types.InlineKeyboardButton("🔙 رجوع", callback_data="cookies_main"))
         try:
-            bot.edit_message_text(
-                "📱 <b>جلب الكوكيز من الفون (أندرويد) — شرح مفصل</b>\n\n"
-                "━━━━━━━━━━━━━━━━━━\n"
-                "1️⃣ <b>تحميل Kiwi Browser</b>\n"
-                "افتح Play Store وابحث عن:\n"
-                "<code>Kiwi Browser</code>\n"
-                "حمّله وافتحه ✅\n\n"
-                "━━━━━━━━━━━━━━━━━━\n"
-                "2️⃣ <b>تثبيت إضافة Cookie-Editor</b>\n"
-                "• في Kiwi اضغط على <b>⋮</b> (النقط التلاتة) فوق يمين\n"
-                "• اضغط <b>Extensions</b>\n"
-                "• اضغط <b>+ From store</b>\n"
-                "• في مربع البحث اكتب: <code>Cookie-Editor</code>\n"
-                "• اضغط على أول نتيجة (110,000+ مستخدم)\n"
-                "• اضغط <b>Add to Kiwi</b> ✅\n\n"
-                "━━━━━━━━━━━━━━━━━━\n"
-                "3️⃣ <b>فتح الموقع وتسجيل الدخول</b>\n"
-                "• اضغط <b>⋮</b> ← <b>New Tab</b>\n"
-                "• في شريط البحث اكتب:\n"
-                "<code>www.ivasms.com/login</code>\n"
-                "• سجل دخول بالإيميل والباسورد\n"
-                "• تأكد إنك وصلت للـ Dashboard ✅\n\n"
-                "━━━━━━━━━━━━━━━━━━\n"
-                "4️⃣ <b>فتح Cookie-Editor</b>\n"
-                "• اضغط <b>⋮</b> فوق يمين\n"
-                "• اضغط <b>Extensions</b>\n"
-                "• اضغط على <b>Cookie-Editor</b>\n"
-                "• هتشوف قائمة فيها كوكيز منها:\n"
-                "  — <code>ivas_sms_session</code>\n"
-                "  — <code>XSRF-TOKEN</code> ✅\n\n"
-                "━━━━━━━━━━━━━━━━━━\n"
-                "5️⃣ <b>تصدير الكوكيز</b>\n"
-                "• نزّل للأسفل في Cookie-Editor\n"
-                "• اضغط <b>Export</b>\n"
-                "• اضغط <b>Export as JSON</b>\n"
-                "• انسخ كل النص اللي ظهر (اضغط مطولاً ← Select All ← Copy) ✅\n\n"
-                "━━━━━━━━━━━━━━━━━━\n"
-                "6️⃣ <b>ابعت الكوكيز للبوت</b>\n"
-                "ارجع هنا واضغط الزرار 👇",
-                chat_id, msg_id, reply_markup=mar, parse_mode="HTML"
-            )
+            bot.edit_message_text("📱 <b>جلب الكوكيز من الفون (أندرويد) — شرح مفصل</b>\n\n━━━━━━━━━━━━━━━━━━\n1️⃣ <b>تحميل Kiwi Browser</b>\nافتح Play Store وابحث عن:\n<code>Kiwi Browser</code>\nحمّله وافتحه ✅\n\n━━━━━━━━━━━━━━━━━━\n2️⃣ <b>تثبيت إضافة Cookie-Editor</b>\n• في Kiwi اضغط على <b>⋮</b> (النقط التلاتة) فوق يمين\n• اضغط <b>Extensions</b>\n• اضغط <b>+ From store</b>\n• في مربع البحث اكتب: <code>Cookie-Editor</code>\n• اضغط على أول نتيجة (110,000+ مستخدم)\n• اضغط <b>Add to Kiwi</b> ✅\n\n━━━━━━━━━━━━━━━━━━\n3️⃣ <b>فتح الموقع وتسجيل الدخول</b>\n• اضغط <b>⋮</b> ← <b>New Tab</b>\n• في شريط البحث اكتب:\n<code>www.ivasms.com/login</code>\n• سجل دخول بالإيميل والباسورد\n• تأكد إنك وصلت للـ Dashboard ✅\n\n━━━━━━━━━━━━━━━━━━\n4️⃣ <b>فتح Cookie-Editor</b>\n• اضغط <b>⋮</b> فوق يمين\n• اضغط <b>Extensions</b>\n• اضغط على <b>Cookie-Editor</b>\n• هتشوف قائمة فيها كوكيز منها:\n  — <code>ivas_sms_session</code>\n  — <code>XSRF-TOKEN</code> ✅\n\n━━━━━━━━━━━━━━━━━━\n5️⃣ <b>تصدير الكوكيز</b>\n• نزّل للأسفل في Cookie-Editor\n• اضغط <b>Export</b>\n• اضغط <b>Export as JSON</b>\n• انسخ كل النص اللي ظهر (اضغط مطولاً ← Select All ← Copy) ✅\n\n━━━━━━━━━━━━━━━━━━\n6️⃣ <b>ابعت الكوكيز للبوت</b>\nارجع هنا واضغط الزرار 👇", chat_id, msg_id, reply_markup=mar, parse_mode="HTML")
         except Exception:
             pass
-
     elif call.data == "cookies_send":
         try:
-            bot.edit_message_text(
-                "📤 <b>ابعت الكوكيز دلوقتي</b>\n\n"
-                "الصق الـ JSON اللي نسخته من Cookie-Editor هنا 👇",
-                chat_id, msg_id,
-                reply_markup=types.InlineKeyboardMarkup([[
-                    types.InlineKeyboardButton("🔙 رجوع", callback_data="cookies_main")
-                ]]),
-                parse_mode="HTML"
-            )
+            bot.edit_message_text("📤 <b>ابعت الكوكيز دلوقتي</b>\n\nالصق الـ JSON اللي نسخته من Cookie-Editor هنا 👇", chat_id, msg_id, reply_markup=types.InlineKeyboardMarkup([[types.InlineKeyboardButton("🔙 رجوع", callback_data="cookies_main")]]), parse_mode="HTML")
         except Exception:
             pass
         bot.register_next_step_handler(call.message, receive_new_cookies)
-
     bot.answer_callback_query(call.id)
 
 def receive_new_cookies(message):
@@ -1680,9 +1297,498 @@ def receive_new_cookies(message):
         bot.reply_to(message, f"❌ خطأ: {str(e)}")
 
 # ======================
-# دوال iVasms
+# 🛠 أزرار الأدمن الإضافية (الأصلية)
 # ======================
+@bot.callback_query_handler(func=lambda call: call.data == "admin_force_sub")
+def admin_force_sub(call):
+    if not is_admin(call.from_user.id):
+        return
+    channels = get_all_force_sub_channels(enabled_only=False)
+    text = "⚙️ إدارة قنوات الاشتراك الإجباري:\n"
+    text += f"إجمالي القنوات: {len(channels)}\n"
+    markup = types.InlineKeyboardMarkup()
+    for ch_id, url, desc in channels:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT enabled FROM force_sub_channels WHERE id=?", (ch_id,))
+        enabled = c.fetchone()[0]
+        conn.close()
+        status = "✅" if enabled else "❌"
+        btn_text = f"{status} {desc or url[:25]}"
+        markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"edit_force_ch_{ch_id}"))
+    markup.add(types.InlineKeyboardButton("➕ إضافة قناة", callback_data="add_force_ch"))
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
 
+@bot.callback_query_handler(func=lambda call: call.data == "toggle_maintenance")
+def handle_maintenance_toggle(call):
+    if not is_admin(call.from_user.id):
+        return
+    current_status = is_maintenance_mode()
+    set_maintenance_mode(not current_status)
+    new_status_text = "🔓 تم فتح البوت للجميع" if current_status else "🔒 تم قفل البوت (وضع الصيانة)"
+    bot.answer_callback_query(call.id, new_status_text, show_alert=True)
+    bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=admin_main_menu())
+
+@bot.callback_query_handler(func=lambda call: call.data == "add_force_ch")
+def add_force_ch_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "add_force_ch_url"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_force_sub"))
+    bot.edit_message_text("أرسل رابط القناة (مثل: https://t.me/xxx أو @xxx):", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_force_ch_url")
+def add_force_ch_step2(message):
+    url = message.text.strip()
+    if not (url.startswith("@") or url.startswith("https://t.me/")):
+        bot.reply_to(message, "❌ رابط غير صالح! يجب أن يبدأ بـ @ أو https://t.me/")
+        return
+    user_states[message.from_user.id] = {"step": "add_force_ch_desc", "url": url}
+    bot.reply_to(message, "أدخل وصفًا للقناة (أو اترك فارغًا):")
+
+@bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), dict) and user_states[msg.from_user.id].get("step") == "add_force_ch_desc")
+def add_force_ch_step3(message):
+    data = user_states[message.from_user.id]
+    url = data["url"]
+    desc = message.text.strip()
+    if add_force_sub_channel(url, desc):
+        bot.reply_to(message, f"✅ تم إضافة القناة:\n{url}\nالوصف: {desc or '—'}")
+    else:
+        bot.reply_to(message, "❌ القناة موجودة مسبقًا!")
+    del user_states[message.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_force_ch_"))
+def edit_force_ch(call):
+    if not is_admin(call.from_user.id):
+        return
+    try:
+        ch_id = int(call.data.split("_", 3)[3])
+    except:
+        return
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT channel_url, description, enabled FROM force_sub_channels WHERE id=?", (ch_id,))
+    row = c.fetchone()
+    conn.close()
+    if not row:
+        bot.answer_callback_query(call.id, "❌ القناة غير موجودة!", show_alert=True)
+        return
+    url, desc, enabled = row
+    status = "مفعلة" if enabled else "معطلة"
+    text = f"🔧 إدارة القناة:\nالرابط: {url}\nالوصف: {desc or '—'}\nالحالة: {status}"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("✏️ تعديل الوصف", callback_data=f"edit_desc_{ch_id}"))
+    if enabled:
+        markup.add(types.InlineKeyboardButton("❌ تعطيل", callback_data=f"toggle_ch_{ch_id}"))
+    else:
+        markup.add(types.InlineKeyboardButton("✅ تفعيل", callback_data=f"toggle_ch_{ch_id}"))
+    markup.add(types.InlineKeyboardButton("🗑️ حذف", callback_data=f"del_ch_{ch_id}"))
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_force_sub"))
+    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("toggle_ch_"))
+def toggle_ch(call):
+    ch_id = int(call.data.split("_", 2)[2])
+    toggle_force_sub_channel(ch_id)
+    bot.answer_callback_query(call.id, "🔄 تم تغيير حالة القناة", show_alert=True)
+    admin_force_sub(call)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("del_ch_"))
+def del_ch(call):
+    ch_id = int(call.data.split("_", 2)[2])
+    if delete_force_sub_channel(ch_id):
+        bot.answer_callback_query(call.id, "✅ تم الحذف!", show_alert=True)
+    else:
+        bot.answer_callback_query(call.id, "❌ فشل الحذف!", show_alert=True)
+    admin_force_sub(call)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_desc_"))
+def edit_desc_step1(call):
+    ch_id = int(call.data.split("_", 2)[2])
+    user_states[call.from_user.id] = f"edit_desc_{ch_id}"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data=f"edit_force_ch_{ch_id}"))
+    bot.edit_message_text("أدخل الوصف الجديد:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: isinstance(user_states.get(msg.from_user.id), str) and user_states[msg.from_user.id].startswith("edit_desc_"))
+def edit_desc_step2(message):
+    try:
+        ch_id = int(user_states[message.from_user.id].split("_")[2])
+        desc = message.text.strip()
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("UPDATE force_sub_channels SET description = ? WHERE id = ?", (desc, ch_id))
+        conn.commit()
+        conn.close()
+        bot.reply_to(message, "✅ تم تحديث الوصف!")
+    except Exception as e:
+        bot.reply_to(message, f"❌ خطأ: {e}")
+    del user_states[message.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_add_combo")
+def admin_add_combo(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "waiting_combo_file"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("📤 أرسل ملف الكومبو بصيغة TXT", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(content_types=['document'])
+def handle_combo_file(message):
+    if not is_admin(message.from_user.id):
+        return
+    if user_states.get(message.from_user.id) != "waiting_combo_file":
+        return
+    try:
+        file_info = bot.get_file(message.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        content = downloaded_file.decode('utf-8')
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        if not lines:
+            bot.reply_to(message, "❌ الملف فارغ!")
+            return
+        first_num = clean_number(lines[0])
+        country_code = None
+        for code in COUNTRY_CODES:
+            if first_num.startswith(code):
+                country_code = code
+                break
+        if not country_code:
+            bot.reply_to(message, "❌ لا يمكن تحديد الدولة من الأرقام!")
+            return
+        save_combo(country_code, lines)
+        name, flag, _ = COUNTRY_CODES[country_code]
+        bot.reply_to(message, f"✅ تم حفظ الكومبو لدولة {flag} {name}\n🔢 عدد الأرقام: {len(lines)}")
+        del user_states[message.from_user.id]
+    except Exception as e:
+        bot.reply_to(message, f"❌ خطأ: {e}")
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_del_combo")
+def admin_del_combo(call):
+    if not is_admin(call.from_user.id):
+        return
+    combos = get_all_combos()
+    if not combos:
+        bot.answer_callback_query(call.id, "لا توجد كومبوهات!")
+        return
+    markup = types.InlineKeyboardMarkup()
+    country_combos = {}
+    for country_code, combo_index in combos:
+        if country_code not in country_combos:
+            country_combos[country_code] = []
+        country_combos[country_code].append(combo_index)
+    
+    for country_code, indices in country_combos.items():
+        if country_code in COUNTRY_CODES:
+            name, flag, _ = COUNTRY_CODES[country_code]
+            for idx in indices:
+                if len(indices) == 1:
+                    btn_text = f"{flag} {name}"
+                else:
+                    btn_text = f"{flag} {name} ({idx})"
+                markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"del_combo_{country_code}_{idx}"))
+    
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("اختر الكومبو للحذف:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("del_combo_"))
+def confirm_del_combo(call):
+    if not is_admin(call.from_user.id):
+        return
+    parts = call.data.split("_")
+    country_code = parts[2]
+    combo_index = int(parts[3]) if len(parts) > 3 else 1
+    success = delete_combo(country_code, combo_index)
+    name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
+    if success:
+        bot.answer_callback_query(call.id, f"✅ تم حذف الكومبو: {flag} {name} ({combo_index})", show_alert=True)
+    else:
+        bot.answer_callback_query(call.id, f"❌ فشل حذف الكومبو!", show_alert=True)
+    admin_del_combo(call)
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_stats")
+def admin_stats(call):
+    if not is_admin(call.from_user.id):
+        return
+    total_users = len(get_all_users())
+    combos = get_all_combos()
+    unique_countries = set()
+    total_combos = 0
+    for country_code, combo_index in combos:
+        unique_countries.add(country_code)
+        total_combos += 1
+    total_numbers = 0
+    for country_code, combo_index in combos:
+        total_numbers += len(get_combo(country_code, combo_index))
+    otp_count = len(get_otp_logs())
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text(
+        f"📊 إحصائيات البوت:\n"
+        f"👥 المستخدمين النشطين: {total_users}\n"
+        f"🌐 الدول المضافة: {len(unique_countries)}\n"
+        f"📦 الكومبوهات: {total_combos}\n"
+        f"📞 إجمالي الأرقام: {total_numbers}\n"
+        f"🔑 إجمالي الأكواد المستلمة: {otp_count}",
+        call.message.chat.id, call.message.message_id, reply_markup=markup
+    )
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_full_report")
+def admin_full_report(call):
+    if not is_admin(call.from_user.id):
+        return
+    try:
+        report = "📊 تقرير شامل عن البوت\n" + "="*40 + "\n\n"
+        report += "👥 المستخدمون:\n"
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT * FROM users")
+        users = c.fetchall()
+        for u in users:
+            status = "محظور" if u[6] else "نشط"
+            report += f"ID: {u[0]} | @{u[1] or 'N/A'} | الرقم: {u[5] or 'N/A'} | الحالة: {status}\n"
+        report += "\n" + "="*40 + "\n\n"
+        report += "🔑 سجل الأكواد:\n"
+        c.execute("SELECT * FROM otp_logs")
+        logs = c.fetchall()
+        for log in logs:
+            user_info = get_user_info(log[5]) if log[5] else None
+            user_tag = f"@{user_info[1]}" if user_info and user_info[1] else f"ID:{log[5] or 'N/A'}"
+            report += f"الرقم: {log[1]} | الكود: {log[2]} | المستخدم: {user_tag} | الوقت: {log[4]}\n"
+        report += "\n" + "="*40 + "\n\n"
+        report += "📦 الكومبوهات:\n"
+        c.execute("SELECT country_code, combo_index, LENGTH(numbers) FROM combos")
+        combos_data = c.fetchall()
+        for country_code, combo_index, num_length in combos_data:
+            name, flag, _ = COUNTRY_CODES.get(country_code, ("Unknown", "🌍", ""))
+            num_count = len(json.loads(get_combo(country_code, combo_index)))
+            report += f"{flag} {name} ({combo_index}): {num_count} رقم\n"
+        conn.close()
+        report += "\n" + "="*40 + "\n\n"
+        report += "تم إنشاء التقرير في: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open("bot_report.txt", "w", encoding="utf-8") as f:
+            f.write(report)
+        with open("bot_report.txt", "rb") as f:
+            bot.send_document(call.from_user.id, f)
+        os.remove("bot_report.txt")
+        bot.answer_callback_query(call.id, "✅ تم إرسال التقرير!", show_alert=True)
+    except Exception as e:
+        bot.answer_callback_query(call.id, f"❌ خطأ: {e}", show_alert=True)
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_ban")
+def admin_ban_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "ban_user"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("أدخل معرف المستخدم لحظره:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "ban_user")
+def admin_ban_step2(message):
+    try:
+        uid = int(message.text)
+        ban_user(uid)
+        bot.reply_to(message, f"✅ تم حظر المستخدم {uid}")
+        del user_states[message.from_user.id]
+    except:
+        bot.reply_to(message, "❌ معرف غير صحيح!")
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_unban")
+def admin_unban_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "unban_user"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("أدخل معرف المستخدم لفك حظره:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "unban_user")
+def admin_unban_step2(message):
+    try:
+        uid = int(message.text)
+        unban_user(uid)
+        bot.reply_to(message, f"✅ تم فك حظر المستخدم {uid}")
+        del user_states[message.from_user.id]
+    except:
+        bot.reply_to(message, "❌ معرف غير صحيح!")
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast_all")
+def admin_broadcast_all_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "broadcast_all"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("أرسل الرسالة للإرسال للجميع:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "broadcast_all")
+def admin_broadcast_all_step2(message):
+    users = get_all_users()
+    success = 0
+    for uid in users:
+        try:
+            bot.send_message(uid, message.text)
+            success += 1
+        except:
+            pass
+    bot.reply_to(message, f"✅ تم الإرسال إلى {success}/{len(users)} مستخدم")
+    del user_states[message.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast_user")
+def admin_broadcast_user_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "broadcast_user_id"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "broadcast_user_id")
+def admin_broadcast_user_step2(message):
+    try:
+        uid = int(message.text)
+        user_states[message.from_user.id] = f"broadcast_msg_{uid}"
+        bot.reply_to(message, "أرسل الرسالة:")
+    except:
+        bot.reply_to(message, "❌ معرف غير صحيح!")
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id, "").startswith("broadcast_msg_"))
+def admin_broadcast_user_step3(message):
+    uid = int(user_states[message.from_user.id].split("_")[2])
+    try:
+        bot.send_message(uid, message.text)
+        bot.reply_to(message, f"✅ تم الإرسال للمستخدم {uid}")
+    except Exception as e:
+        bot.reply_to(message, f"❌ فشل: {e}")
+    del user_states[message.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_user_info")
+def admin_user_info_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "get_user_info"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "get_user_info")
+def admin_user_info_step2(message):
+    try:
+        uid = int(message.text)
+        user = get_user_info(uid)
+        if not user:
+            bot.reply_to(message, "❌ المستخدم غير موجود!")
+            return
+        status = "محظور" if user[6] else "نشط"
+        info = f"👤 معلومات المستخدم:\n"
+        info += f"🆔: {user[0]}\n"
+        info += f"Username: @{user[1] or 'N/A'}\n"
+        info += f"الاسم: {user[2] or ''} {user[3] or ''}\n"
+        info += f"الرقم المخصص: {user[5] or 'N/A'}\n"
+        info += f"الحالة: {status}"
+        bot.reply_to(message, info)
+    except Exception as e:
+        bot.reply_to(message, f"❌ خطأ: {e}")
+    del user_states[message.from_user.id]
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_dashboards")
+def admin_dashboards(call):
+    if not is_admin(call.from_user.id):
+        return
+    text = "🖥️ <b>لوحة التحكم iVasms</b>\n\n"
+    text += f"🔗 <b>الموقع:</b> {IVASMS_DASHBOARD['base_url']}\n"
+    text += f"📧 <b>البريد:</b> {IVASMS_DASHBOARD['username']}\n"
+    text += f"🍪 <b>حالة الكوكيز:</b> {'صالحة ✅' if IVASMS_DASHBOARD.get('is_logged_in') else 'منتهية ❌'}\n"
+    text += f"🔄 <b>آخر فحص:</b> {IVASMS_DASHBOARD.get('last_check', 'لم يتم بعد')}\n\n"
+    text += f"💡 <b>لتحديث الكوكيز استخدم الأمر:</b> /cookies"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML")
+
+@bot.callback_query_handler(func=lambda call: call.data == "admin_private_combo")
+def admin_private_combo(call):
+    if not is_admin(call.from_user.id):
+        return
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("➕ إضافة كومبو برايفت", callback_data="add_private_combo"))
+    markup.add(types.InlineKeyboardButton("🗑️ مسح كومبو برايفت", callback_data="del_private_combo"))
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_panel"))
+    bot.edit_message_text("👤 كومبو برايفت:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data == "add_private_combo")
+def add_private_combo_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "add_private_user_id"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_private_combo"))
+    bot.edit_message_text("أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "add_private_user_id")
+def add_private_combo_step2(message):
+    try:
+        uid = int(message.text)
+        user_states[message.from_user.id] = f"add_private_country_{uid}"
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        buttons = []
+        all_combos = get_all_combos()
+        country_combos = {}
+        for country_code, combo_index in all_combos:
+            if country_code not in country_combos:
+                country_combos[country_code] = []
+            country_combos[country_code].append(combo_index)
+        for country_code, indices in country_combos.items():
+            if country_code in COUNTRY_CODES:
+                name, flag, _ = COUNTRY_CODES[country_code]
+                for idx in indices:
+                    if len(indices) == 1:
+                        btn_text = f"{flag} {name}"
+                    else:
+                        btn_text = f"{flag} {name} ({idx})"
+                    buttons.append(types.InlineKeyboardButton(btn_text, callback_data=f"select_private_{uid}_{country_code}"))
+        for i in range(0, len(buttons), 2):
+            markup.row(*buttons[i:i+2])
+        markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_private_combo"))
+        bot.reply_to(message, "اختر الدولة:", reply_markup=markup)
+    except:
+        bot.reply_to(message, "❌ معرف غير صحيح!")
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("select_private_"))
+def select_private_combo(call):
+    parts = call.data.split("_")
+    uid = int(parts[2])
+    country_code = parts[3]
+    save_user(uid, private_combo_country=country_code)
+    name, flag, _ = COUNTRY_CODES[country_code]
+    bot.answer_callback_query(call.id, f"✅ تم تعيين كومبو برايفت لـ {uid} - {flag} {name}", show_alert=True)
+    admin_private_combo(call)
+
+@bot.callback_query_handler(func=lambda call: call.data == "del_private_combo")
+def del_private_combo_step1(call):
+    if not is_admin(call.from_user.id):
+        return
+    user_states[call.from_user.id] = "del_private_user_id"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="admin_private_combo"))
+    bot.edit_message_text("أدخل معرف المستخدم:", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) == "del_private_user_id")
+def del_private_combo_step2(message):
+    try:
+        uid = int(message.text)
+        save_user(uid, private_combo_country=None)
+        bot.reply_to(message, f"✅ تم مسح الكومبو البرايفت للمستخدم {uid}")
+    except:
+        bot.reply_to(message, "❌ معرف غير صحيح!")
+    del user_states[message.from_user.id]
+
+# ======================
+# 🔄 دوال iVasms (اللوحة)
+# ======================
 def login_to_ivasms():
     global _cookies_alert_sent, _login_in_progress, _cookies_expired
     if _login_in_progress:
@@ -1714,9 +1820,9 @@ def login_to_ivasms():
             _cookies_expired = True
             mar = types.InlineKeyboardMarkup(row_width=1)
             mar.add(
-                color_button("💻 شرح جلب الكوكيز من PC", "cookies_guide_pc", "primary"),
-                color_button("📱 شرح جلب الكوكيز من الفون", "cookies_guide_phone", "primary"),
-                color_button("📤 ابعت الكوكيز الجديدة", "cookies_send", "danger")
+                types.InlineKeyboardButton("💻 شرح جلب الكوكيز من PC", callback_data="cookies_guide_pc"),
+                types.InlineKeyboardButton("📱 شرح جلب الكوكيز من الفون", callback_data="cookies_guide_phone"),
+                types.InlineKeyboardButton("📤 ابعت الكوكيز الجديدة", callback_data="cookies_send")
             )
             if not _cookies_alert_sent:
                 _cookies_alert_sent = True
@@ -1830,409 +1936,8 @@ def fetch_ivasms_messages():
         return []
 
 # ======================
-# معالجات الأزرار الإدارية الناقصة (الإضافات الجديدة)
+# 🔄 الحلقة الرئيسية
 # ======================
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_stats")
-def admin_stats(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    users = get_all_users()
-    combos = get_all_combos()
-    logs = get_otp_logs()
-    total_users = len(users)
-    total_combos = len(combos)
-    total_otps = len(logs)
-    banned_users = 0
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM users WHERE is_banned=1")
-    banned_users = c.fetchone()[0]
-    conn.close()
-    text = (
-        f"📊 <b>الإحصائيات العامة</b>\n\n"
-        f"👥 <b>المستخدمين:</b> {total_users}\n"
-        f"🚫 <b>المحظورين:</b> {banned_users}\n"
-        f"📦 <b>الكومبوهات:</b> {total_combos}\n"
-        f"📝 <b>سجلات OTP:</b> {total_otps}\n\n"
-        f"🟢 <b>حالة البوت:</b> {'يعمل' if not is_maintenance_mode() else 'صيانة'}\n"
-        f"🍪 <b>حالة الكوكيز:</b> {'صالحة ✅' if IVASMS_DASHBOARD.get('is_logged_in') else 'منتهية ❌'}"
-    )
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML")
-    except:
-        bot.send_message(call.message.chat.id, text, reply_markup=markup, parse_mode="HTML")
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_full_report")
-def admin_full_report(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    users = get_all_users()
-    combos = get_all_combos()
-    logs = get_otp_logs()[-50:]
-    report = "📄 <b>تقرير شامل</b>\n\n"
-    report += f"👥 <b>إجمالي المستخدمين:</b> {len(users)}\n"
-    report += f"📦 <b>إجمالي الكومبوهات:</b> {len(combos)}\n"
-    report += f"📝 <b>آخر 50 OTP:</b>\n"
-    for log in logs[-10:]:
-        report += f"• {log[3]} | {log[1]} | {log[2][:30]}\n"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(report, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML")
-    except:
-        bot.send_message(call.message.chat.id, report, reply_markup=markup, parse_mode="HTML")
-    bot.answer_callback_query(call.id)
-
-# متغيرات للإذاعة
-broadcast_data = {}
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast_all")
-def admin_broadcast_all(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_broadcast_all"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(
-            "📢 <b>إذاعة عامة لجميع المستخدمين</b>\n\nأرسل الرسالة التي تريد إذاعتها (نص أو صورة أو فيديو):",
-            call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML"
-        )
-    except:
-        bot.send_message(call.message.chat.id, "📢 أرسل الرسالة التي تريد إذاعتها:", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast_user")
-def admin_broadcast_user(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_broadcast_user_id"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(
-            "📨 <b>إذاعة مخصصة لمستخدم معين</b>\n\nأرسل معرف المستخدم (user_id) أولاً:",
-            call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML"
-        )
-    except:
-        bot.send_message(call.message.chat.id, "📨 أرسل معرف المستخدم أولاً:", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_ban")
-def admin_ban(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_ban_user"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(
-            "🚫 <b>حظر مستخدم</b>\n\nأرسل معرف المستخدم (user_id) لحظره:",
-            call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML"
-        )
-    except:
-        bot.send_message(call.message.chat.id, "🚫 أرسل معرف المستخدم لحظره:", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_unban")
-def admin_unban(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_unban_user"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(
-            "✅ <b>إلغاء حظر مستخدم</b>\n\nأرسل معرف المستخدم (user_id) لإلغاء حظره:",
-            call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML"
-        )
-    except:
-        bot.send_message(call.message.chat.id, "✅ أرسل معرف المستخدم لإلغاء حظره:", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_user_info")
-def admin_user_info(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_user_info"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(
-            "👤 <b>معلومات مستخدم</b>\n\nأرسل معرف المستخدم (user_id) للحصول على معلوماته:",
-            call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML"
-        )
-    except:
-        bot.send_message(call.message.chat.id, "👤 أرسل معرف المستخدم للحصول على معلوماته:", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_dashboards")
-def admin_dashboards(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    text = "🖥️ <b>لوحة التحكم iVasms</b>\n\n"
-    text += f"🔗 <b>الموقع:</b> {IVASMS_DASHBOARD['base_url']}\n"
-    text += f"📧 <b>البريد:</b> {IVASMS_DASHBOARD['username']}\n"
-    text += f"🍪 <b>حالة الكوكيز:</b> {'صالحة ✅' if IVASMS_DASHBOARD.get('is_logged_in') else 'منتهية ❌'}\n"
-    text += f"🔄 <b>آخر فحص:</b> {IVASMS_DASHBOARD.get('last_check', 'لم يتم بعد')}\n\n"
-    text += f"💡 <b>لتحديث الكوكيز استخدم الأمر:</b> /cookies"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML")
-    except:
-        bot.send_message(call.message.chat.id, text, reply_markup=markup, parse_mode="HTML")
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_private_combo")
-def admin_private_combo(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    text = "🔑 <b>إدارة الكومبوهات الخاصة</b>\n\n"
-    text += "الكومبو الخاص هو كومبو يظهر لمستخدم معين فقط.\n\n"
-    text += "<b>الأوامر المتاحة:</b>\n"
-    text += "• <code>/set_private_combo [user_id] [country_code]</code> - تعيين كومبو خاص لمستخدم\n"
-    text += "• <code>/remove_private_combo [user_id] [country_code]</code> - حذف كومبو خاص\n"
-    text += "• <code>/upload_private_combo [user_id] [country_code]</code> - رفع ملف كومبو خاص\n\n"
-    text += "مثال:\n"
-    text += "<code>/set_private_combo 123456789 EG</code>"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_panel", "danger"))
-    try:
-        bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML")
-    except:
-        bot.send_message(call.message.chat.id, text, reply_markup=markup, parse_mode="HTML")
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "toggle_maintenance")
-def toggle_maintenance(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    global BOT_ACTIVE
-    BOT_ACTIVE = not BOT_ACTIVE
-    status = "🟢 يعمل بنجاح" if BOT_ACTIVE else "🔴 قيد الصيانة"
-    bot.answer_callback_query(call.id, f"✅ تم تغيير حالة البوت إلى: {status}", show_alert=True)
-    show_admin_panel(call)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("edit_force_ch_"))
-def edit_force_channel(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    channel_id = int(call.data.split("_")[-1])
-    toggle_force_sub_channel(channel_id)
-    bot.answer_callback_query(call.id, "✅ تم تغيير حالة القناة", show_alert=True)
-    admin_force_sub(call)
-
-@bot.callback_query_handler(func=lambda call: call.data == "add_force_ch")
-def add_force_channel_start(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "❌ هذا الأمر للمطورين فقط", show_alert=True)
-        return
-    user_states[call.from_user.id] = "waiting_channel_url"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(color_button("🔙 رجوع", "admin_force_sub", "danger"))
-    try:
-        bot.edit_message_text(
-            "➕ <b>إضافة قناة جديدة</b>\n\n"
-            "أرسل رابط القناة (مثال: @shhsnbdb أو https://t.me/shhsnbdb):",
-            call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="HTML"
-        )
-    except:
-        bot.send_message(call.message.chat.id, "➕ أرسل رابط القناة:", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-# ======================
-# معالجات الرسائل النصية للأزرار الإدارية
-# ======================
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_broadcast_all")
-def handle_broadcast_all(message):
-    if not is_admin(message.from_user.id):
-        return
-    users = get_all_users()
-    success = 0
-    fail = 0
-    bot.reply_to(message, f"⏳ جاري إذاعة الرسالة لـ {len(users)} مستخدم...")
-    for user_id in users:
-        try:
-            if message.text:
-                bot.send_message(user_id, message.text, parse_mode="HTML")
-            elif message.photo:
-                bot.send_photo(user_id, message.photo[-1].file_id, caption=message.caption, parse_mode="HTML")
-            elif message.video:
-                bot.send_video(user_id, message.video.file_id, caption=message.caption, parse_mode="HTML")
-            elif message.document:
-                bot.send_document(user_id, message.document.file_id, caption=message.caption, parse_mode="HTML")
-            success += 1
-        except:
-            fail += 1
-        time.sleep(0.05)
-    bot.reply_to(message, f"✅ تم الإذاعة بنجاح!\nتم الإرسال: {success}\nفشل الإرسال: {fail}")
-    del user_states[message.from_user.id]
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_broadcast_user_id")
-def handle_broadcast_user_id(message):
-    if not is_admin(message.from_user.id):
-        return
-    try:
-        target_id = int(message.text.strip())
-        user_states[message.from_user.id] = "waiting_broadcast_msg"
-        user_states[f"broadcast_target_{message.from_user.id}"] = target_id
-        bot.reply_to(message, f"📨 تم تعيين المستخدم: {target_id}\n\nأرسل الرسالة الآن (نص أو صورة أو فيديو):")
-    except:
-        bot.reply_to(message, "❌ معرف المستخدم غير صالح! أرسل رقم صحيح.")
-        del user_states[message.from_user.id]
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_broadcast_msg")
-def handle_broadcast_msg(message):
-    if not is_admin(message.from_user.id):
-        return
-    target_id = user_states.get(f"broadcast_target_{message.from_user.id}")
-    if not target_id:
-        bot.reply_to(message, "❌ حدث خطأ، حاول مرة أخرى.")
-        del user_states[message.from_user.id]
-        return
-    try:
-        if message.text:
-            bot.send_message(target_id, message.text, parse_mode="HTML")
-        elif message.photo:
-            bot.send_photo(target_id, message.photo[-1].file_id, caption=message.caption, parse_mode="HTML")
-        elif message.video:
-            bot.send_video(target_id, message.video.file_id, caption=message.caption, parse_mode="HTML")
-        elif message.document:
-            bot.send_document(target_id, message.document.file_id, caption=message.caption, parse_mode="HTML")
-        bot.reply_to(message, f"✅ تم إرسال الرسالة للمستخدم {target_id} بنجاح!")
-    except Exception as e:
-        bot.reply_to(message, f"❌ فشل الإرسال: {str(e)}")
-    del user_states[message.from_user.id]
-    if f"broadcast_target_{message.from_user.id}" in user_states:
-        del user_states[f"broadcast_target_{message.from_user.id}"]
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_ban_user")
-def handle_ban_user(message):
-    if not is_admin(message.from_user.id):
-        return
-    try:
-        target_id = int(message.text.strip())
-        ban_user(target_id)
-        bot.reply_to(message, f"✅ تم حظر المستخدم {target_id} بنجاح!")
-    except:
-        bot.reply_to(message, "❌ معرف المستخدم غير صالح!")
-    del user_states[message.from_user.id]
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_unban_user")
-def handle_unban_user(message):
-    if not is_admin(message.from_user.id):
-        return
-    try:
-        target_id = int(message.text.strip())
-        unban_user(target_id)
-        bot.reply_to(message, f"✅ تم إلغاء حظر المستخدم {target_id} بنجاح!")
-    except:
-        bot.reply_to(message, "❌ معرف المستخدم غير صالح!")
-    del user_states[message.from_user.id]
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_user_info")
-def handle_user_info(message):
-    if not is_admin(message.from_user.id):
-        return
-    try:
-        target_id = int(message.text.strip())
-        user = get_user_info(target_id)
-        if user:
-            text = f"👤 <b>معلومات المستخدم</b>\n\n"
-            text += f"🆔 <b>المعرف:</b> <code>{user[0]}</code>\n"
-            text += f"👤 <b>اليوزر:</b> @{user[1] if user[1] else 'None'}\n"
-            text += f"📛 <b>الاسم:</b> {user[2] or ''} {user[3] or ''}\n"
-            text += f"🌍 <b>الدولة:</b> {user[4] or 'غير محدد'}\n"
-            text += f"📱 <b>الأرقام:</b> {user[5] or 'لا يوجد'}\n"
-            text += f"🚫 <b>محظور:</b> {'نعم' if user[6] == 1 else 'لا'}\n"
-            text += f"🔑 <b>كومبو خاص:</b> {user[7] or 'لا يوجد'}"
-        else:
-            text = f"❌ لا يوجد مستخدم بالمعرف {target_id}"
-        bot.reply_to(message, text, parse_mode="HTML")
-    except:
-        bot.reply_to(message, "❌ معرف المستخدم غير صالح!")
-    del user_states[message.from_user.id]
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_channel_url")
-def handle_channel_url(message):
-    if not is_admin(message.from_user.id):
-        return
-    channel_url = message.text.strip()
-    user_states[message.from_user.id] = "waiting_channel_desc"
-    user_states[f"channel_url_{message.from_user.id}"] = channel_url
-    bot.reply_to(message, "📝 أرسل وصف القناة (اختياري، أو اكتب 'تخطي'):")
-
-@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_channel_desc")
-def handle_channel_desc(message):
-    if not is_admin(message.from_user.id):
-        return
-    channel_url = user_states.get(f"channel_url_{message.from_user.id}", "")
-    desc = message.text.strip()
-    if desc.lower() == "تخطي":
-        desc = ""
-    if add_force_sub_channel(channel_url, desc):
-        bot.reply_to(message, "✅ تم إضافة القناة بنجاح!")
-    else:
-        bot.reply_to(message, "❌ القناة موجودة مسبقاً أو الرابط غير صالح")
-    del user_states[message.from_user.id]
-    if f"channel_url_{message.from_user.id}" in user_states:
-        del user_states[f"channel_url_{message.from_user.id}"]
-
-# ======================
-# أوامر إضافية للمطور
-# ======================
-
-@bot.message_handler(commands=['set_private_combo'])
-def set_private_combo(message):
-    if not is_admin(message.from_user.id):
-        return
-    parts = message.text.split()
-    if len(parts) != 3:
-        bot.reply_to(message, "❌ الاستخدام: /set_private_combo [user_id] [country_code]\nمثال: /set_private_combo 123456789 EG")
-        return
-    try:
-        user_id = int(parts[1])
-        country_code = parts[2].upper()
-        if country_code not in COUNTRY_CODES:
-            bot.reply_to(message, f"❌ كود الدولة {country_code} غير صالح!")
-            return
-        save_user(user_id, private_combo_country=country_code)
-        bot.reply_to(message, f"✅ تم تعيين كومبو خاص للمستخدم {user_id} للدولة {COUNTRY_CODES[country_code][1]} {COUNTRY_CODES[country_code][0]}")
-    except:
-        bot.reply_to(message, "❌ حدث خطأ، تأكد من صحة البيانات")
-
-@bot.message_handler(commands=['remove_private_combo'])
-def remove_private_combo(message):
-    if not is_admin(message.from_user.id):
-        return
-    parts = message.text.split()
-    if len(parts) != 2:
-        bot.reply_to(message, "❌ الاستخدام: /remove_private_combo [user_id]")
-        return
-    try:
-        user_id = int(parts[1])
-        save_user(user_id, private_combo_country=None)
-        bot.reply_to(message, f"✅ تم إزالة الكومبو الخاص للمستخدم {user_id}")
-    except:
-        bot.reply_to(message, "❌ حدث خطأ")
-
 def main_loop():
     global REFRESH_INTERVAL
     REFRESH_INTERVAL = 3
@@ -2256,9 +1961,9 @@ def main_loop():
             if not success:
                 mar = types.InlineKeyboardMarkup(row_width=1)
                 mar.add(
-                    color_button("💻 شرح جلب الكوكيز من PC", "cookies_guide_pc", "primary"),
-                    color_button("📱 شرح جلب الكوكيز من الفون", "cookies_guide_phone", "primary"),
-                    color_button("📤 ابعت الكوكيز الجديدة", "cookies_send", "danger")
+                    types.InlineKeyboardButton("💻 شرح جلب الكوكيز من PC", callback_data="cookies_guide_pc"),
+                    types.InlineKeyboardButton("📱 شرح جلب الكوكيز من الفون", callback_data="cookies_guide_phone"),
+                    types.InlineKeyboardButton("📤 ابعت الكوكيز الجديدة", callback_data="cookies_send")
                 )
                 def _send_first_alert():
                     for admin_id in ADMIN_IDS:
@@ -2312,6 +2017,9 @@ def run_bot():
             print(f"[!] Polling error: {e}")
             time.sleep(5)
 
+# ======================
+# ▶️ تشغيل البوت
+# ======================
 if __name__ == "__main__":
     threading.Thread(target=main_loop, daemon=True).start()
     run_bot()
