@@ -1992,17 +1992,8 @@ def main_loop():
                     consecutive_errors[dash["name"]] = 0
             time.sleep(REFRESH_INTERVAL)
 
-def run_bot():
-    print("[*] Starting bot...")
-    while True:
-        try:
-            bot.polling(none_stop=False, timeout=30)
-        except Exception as e:
-            print(f"[!] Polling error: {e}")
-            time.sleep(5)
-
 # ======================
-# ▶️ تشغيل البوت مع Flask (آخر 20 سطر)
+# ▶️ تشغيل البوت مع Flask
 # ======================
 from flask import Flask
 import os
@@ -2018,7 +2009,19 @@ def health():
     return {"status": "ok", "bot": "Taker2 OTP"}
 
 if __name__ == "__main__":
-    # بدء تشغيل Flask على المنفذ المطلوب
+    # تشغيل البوت في الخلفية
+    def run_bot_async():
+        while True:
+            try:
+                bot.polling(none_stop=False, timeout=30)
+            except Exception as e:
+                print(f"[!] Polling error: {e}")
+                time.sleep(5)
+    
+    bot_thread = threading.Thread(target=run_bot_async, daemon=True)
+    bot_thread.start()
+    
+    # تشغيل Flask
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Starting Flask on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=port, debug=False)
