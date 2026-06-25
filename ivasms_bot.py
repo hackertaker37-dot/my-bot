@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║     🚀 𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃 BOT - ULTIMATE EDITION v5.0                      ║
+║     🚀 Taker2 OTP BOT - ULTIMATE EDITION v5.0                            ║
 ║     👨‍💻 Developer: @DEVIL_EL_YOUTUBER                                     ║
 ║     🔗 API: iVasms (Full Integration)                                    ║
 ║     🌐 Languages: العربية                                                ║
@@ -33,6 +33,7 @@ import asyncio
 import httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from flask import Flask
 
 print("✅ 2. تم استيراد المكتبات بنجاح")
 sys.stdout.flush()
@@ -862,7 +863,7 @@ def send_otp_to_user_and_group(date_str, number, sms):
             )
             bot.send_message(
                 user_id,
-                f"""✨ <b><u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u></b>\n🌍 <b>Country:</b> {safe_html(country_name)} {country_flag}\n⚙ <b>Service:</b> {safe_html(service)}\n☎ <b>Number:</b> {safe_html(number)}\n🕒 <b>Time:</b> {safe_html(date_str)}\n\n🔐 <b>Code:</b> {safe_html(otp_code)}\n\n<b>كود {safe_html(service)} {safe_html(otp_code[:3])}-{safe_html(otp_code[3:])} ؟</b>""",
+                f"""✨ <b><u>Taker2 OTP</u></b>\n🌍 <b>Country:</b> {safe_html(country_name)} {country_flag}\n⚙ <b>Service:</b> {safe_html(service)}\n☎ <b>Number:</b> {safe_html(number)}\n🕒 <b>Time:</b> {safe_html(date_str)}\n\n🔐 <b>Code:</b> {safe_html(otp_code)}\n\n<b>كود {safe_html(service)} {safe_html(otp_code[:3])}-{safe_html(otp_code[3:])} ؟</b>""",
                 reply_markup=markup,
                 parse_mode="HTML"
             )
@@ -892,7 +893,7 @@ def send_welcome(message):
 
     if not is_admin(user_id) and not IVASMS_DASHBOARD.get('is_logged_in', False):
         maintenance_caption = (
-            "<b>❍─── <u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u> ───❍</b>\n\n"
+            "<b>❍─── <u>Taker2 OTP</u> ───❍</b>\n\n"
             "<b>⚠️ عذراً عزيزي المستخدم..</b>\n"
             "<b>البوت الآن في وضع الصيانة لتحديث الخدمات.</b>\n\n"
             "<b>⏳ يرجى المحاولة مرة أخرى لاحقاً.</b>\n"
@@ -907,7 +908,7 @@ def send_welcome(message):
 
     if is_maintenance_mode() and not is_admin(user_id):
         maintenance_caption = (
-            "<b>❍─── <u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u> ───❍</b>\n\n"
+            "<b>❍─── <u>Taker2 OTP</u> ───❍</b>\n\n"
             "<b>⚠️ عذراً عزيزي المستخدم..</b>\n"
             "<b>البوت الآن في وضع الصيانة لتحديث الخدمات.</b>\n\n"
             "<b>⏳ يرجى المحاولة مرة أخرى لاحقاً.</b>\n"
@@ -974,9 +975,9 @@ def send_welcome(message):
         markup.add(types.InlineKeyboardButton("🔐 Admin Panel", callback_data="admin_panel"))
 
     fancy_text = (
-        "<b>❍<u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u>❍</b>\n\n"
+        "<b>❍<u>Taker2 OTP</u>❍</b>\n\n"
         "<b>🔋<u>مـنـور بـوت ارقـام يـ صـديـقـي😁✌️</u></b>\n\n"
-        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=8215895035'>.⤹​ℎ𝑎𝑐𝑘𝑒𝑟 𝑇𝑎𝑘𝑒𝑟⤾.</a></b>\n\n"
+        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=8215895035'>.⤹​hacker Taker⤾.</a></b>\n\n"
         "<b>────────────────────</b>\n"
         "<b><u>اخـتـر الــدولـة الـتـي تـريـدهـا مـن الـزر الاسـفـل</u> ⬇️</b>"
     )
@@ -1135,9 +1136,9 @@ def back_to_countries(call):
         markup.add(types.InlineKeyboardButton("🔐 Admin Panel", callback_data="admin_panel"))
 
     fancy_text = (
-        "<b>❍<u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u>❍</b>\n\n"
+        "<b>❍<u>Taker2 OTP</u>❍</b>\n\n"
         "<b>🔋<u>مـنـور بـوت ارقـام يـ صـديـقـي😁✌️</u></b>\n\n"
-        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=8215895035'>.⤹​ℎ𝑎𝑐𝑘𝑒𝑟 𝑇𝑎𝑘𝑒𝑟⤾.</a></b>\n\n"
+        "<b>🎓<u>𝒐𝒘𝒏𝒆𝒓</u> : <a href='tg://user?id=8215895035'>.⤹​hacker Taker⤾.</a></b>\n\n"
         "<b>────────────────────</b>\n"
         "<b><u>اخـتـر الــدولـة الـتـي تـريـدهـا مـن الـزر الاسـفـل</u> ⬇️</b>"
     )
@@ -1151,51 +1152,36 @@ def back_to_countries(call):
         bot.answer_callback_query(call.id)
 
 # ======================
-# 🔐 لوحة التحكم الإدارية الكاملة (الأصلية)
+# 🔐 لوحة التحكم الإدارية الكاملة
 # ======================
 def admin_main_menu():
     markup = types.InlineKeyboardMarkup()
-    
-    # 1. زر حالة البوت
     status_icon = "🟢" if not is_maintenance_mode() else "🔴"
     status_text = "الآن: يعمل بنجاح" if not is_maintenance_mode() else "الآن: قيد الصيانة"
     markup.add(types.InlineKeyboardButton(f"{status_icon} {status_text}", callback_data="toggle_maintenance"))
-    
-    # 2. أزرار الكومبوهات
     markup.row(
         types.InlineKeyboardButton("📥 إضافة كومبو", callback_data="admin_add_combo"),
         types.InlineKeyboardButton("🗑️ حذف كومبو", callback_data="admin_del_combo")
     )
-    
-    # 3. أزرار الإحصائيات والتقارير
     markup.row(
         types.InlineKeyboardButton("📊 الإحصائيات", callback_data="admin_stats"),
         types.InlineKeyboardButton("📄 تقرير شامل", callback_data="admin_full_report")
     )
-    
-    # 4. أزرار الإذاعة
     markup.row(
         types.InlineKeyboardButton("📢 إذاعة عامة", callback_data="admin_broadcast_all"),
         types.InlineKeyboardButton("📨 إذاعة مخصصة", callback_data="admin_broadcast_user")
     )
-    
-    # 5. أزرار إدارة المستخدمين
     markup.row(
         types.InlineKeyboardButton("🚫 حظر", callback_data="admin_ban"),
         types.InlineKeyboardButton("✅ إلغاء حظر", callback_data="admin_unban"),
         types.InlineKeyboardButton("👤 معلومات", callback_data="admin_user_info")
     )
-    
-    # 6. أزرار الإعدادات المتقدمة (الأصلية)
     markup.row(
         types.InlineKeyboardButton("🔗 إشتراك إجباري", callback_data="admin_force_sub"),
         types.InlineKeyboardButton("🖥️ اللوحات", callback_data="admin_dashboards"),
         types.InlineKeyboardButton("🔑 برايفت", callback_data="admin_private_combo")
     )
-
-    # 7. زر الخروج
     markup.add(types.InlineKeyboardButton("🔙 مغادرة لوحة التحكم", callback_data="back_to_countries"))
-    
     return markup
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_panel")
@@ -1203,9 +1189,8 @@ def show_admin_panel(call):
     if not is_admin(call.from_user.id):
         bot.answer_callback_query(call.id, "⚠️ عذراً، هذا القسم للمطورين فقط.", show_alert=True)
         return
-
     admin_text = (
-        "<b>❍─── <u>𝑇𝑎𝑘𝑒𝑟2 𝑂𝑇𝑃</u> ───❍</b>\n\n"
+        "<b>❍─── <u>Taker2 OTP</u> ───❍</b>\n\n"
         "<b>👋  مــــرحـــــبا بــــك أيـــــهــا الـــمـــطــــور فــي لوحــــة الــــتـــحــكــم.</b>\n\n" 
         "<b>⚙️ يمكنك التحكم في كامل وظائف البوت من هنا.</b>\n"
         "<b>⚠️ تنبيه: أي تغيير في الإعدادات يؤثر على المستخدمين فوراً.</b>\n\n"
@@ -1215,14 +1200,13 @@ def show_admin_panel(call):
         f"<b>• الوقت الحالي: <u>{datetime.now().strftime('%H:%M')}</u></b>\n"
         "<b>────────────────────</b>"
     )
-    
     try:
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=admin_text, parse_mode="HTML", reply_markup=admin_main_menu(), disable_web_page_preview=True)
     except Exception as e:
         print(f"Admin Panel Error: {e}")
 
 # ======================
-# 🍪 نظام الكوكيز (الأوامر)
+# 🍪 نظام الكوكيز
 # ======================
 @bot.message_handler(commands=['cookies'])
 def cmd_cookies(message):
@@ -1297,7 +1281,7 @@ def receive_new_cookies(message):
         bot.reply_to(message, f"❌ خطأ: {str(e)}")
 
 # ======================
-# 🛠 أزرار الأدمن الإضافية (الأصلية)
+# 🛠 أزرار الأدمن الإضافية
 # ======================
 @bot.callback_query_handler(func=lambda call: call.data == "admin_force_sub")
 def admin_force_sub(call):
@@ -2018,8 +2002,18 @@ def run_bot():
             time.sleep(5)
 
 # ======================
-# ▶️ تشغيل البوت
+# ▶️ تشغيل البوت مع Flask
 # ======================
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "✅ Taker2 OTP Bot is running!"
+
+@app.route('/health')
+def health():
+    return {"status": "ok", "bot": "Taker2 OTP"}
+
 if __name__ == "__main__":
     threading.Thread(target=main_loop, daemon=True).start()
     run_bot()
