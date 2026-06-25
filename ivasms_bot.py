@@ -2004,6 +2004,9 @@ def run_bot():
 # ======================
 # ▶️ تشغيل البوت مع Flask
 # ======================
+from flask import Flask
+import os
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -2016,4 +2019,6 @@ def health():
 
 if __name__ == "__main__":
     threading.Thread(target=main_loop, daemon=True).start()
-    run_bot()
+    # تشغيل Flask على المنفذ المطلوب
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
