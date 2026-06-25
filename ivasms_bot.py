@@ -2,7 +2,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║     🚀 Taker2 OTP BOT - ULTIMATE EDITION v5.0                            ║
-║     👨‍💻 Developer: @DEVIL_EL_YOUTUBER                                     ║
+║     👨‍💻 Developer: @hackerTaker                                           ║
 ║     🔗 API: iVasms (Full Integration)                                    ║
 ║     🌐 Languages: العربية                                                ║
 ║     🧵 Workers: Multi-Threaded                                           ║
@@ -115,7 +115,7 @@ IVASMS_DASHBOARD = {
 # ======================
 USERNAME = "bwt756183@gmail.com"
 PASSWORD = "011399@ZZzz"
-BOT_TOKEN = "8719786806:AAGDma9jmh8pmT0NnqFvseU65lYVWCg1GFw"
+BOT_TOKEN = "8719786806:AAGaTc2k3z6x8d_BzgdJNI53UGiJJnGAOb8"
 CHAT_IDS = ["-1003789271722"]
 REFRESH_INTERVAL = 3
 TIMEOUT = 100
@@ -139,7 +139,7 @@ if not CHAT_IDS:
     raise SystemExit("❌ CHAT_IDS must be configured")
 
 # ======================
-# 🌍 رموز الدول (كاملة)
+# 🌍 رموز الدول
 # ======================
 COUNTRY_CODES = {
     "1": ("USA/Canada", "🇺🇸", "US"),
@@ -807,7 +807,7 @@ def send_to_telegram_group(text, otp_code):
                 [{"text": f"✌🏻 {otp_code}", "copy_text": {"text": str(otp_code)}}],
                 [
                     {"text": "💬 𝑆𝑀𝑆 ↗️", "url": "https://t.me/numhj"},
-                    {"text": "𝐵𝑂𝑇 ↗️", "url": "https://t.me/DEVIL_NUMBER_OTP_BOT"}
+                    {"text": "𝐵𝑂𝑇 ↗️", "url": "https://t.me/Taker2_OTP_BOT"}
                 ],
                 [
                     {"text": "𓆩𝘽𝙤𝙩 𝘾𝙝𝙖𝙣𝙣𝙚𝙡𓆪 ↗️", "url": "https://t.me/numhj"}
@@ -858,8 +858,8 @@ def send_otp_to_user_and_group(date_str, number, sms):
         try:
             markup = types.InlineKeyboardMarkup()
             markup.row(
-                types.InlineKeyboardButton("𝑂𝑊𝑁𝐸𝑅⚙️", url="https://t.me/DEVIL_KING_ELASLY"),
-                types.InlineKeyboardButton("𓆩𝘽𝙤𝙩 𝘾𝙝𝙖𝙣𝙣𝙚𝙡𓆪", url="https://t.me/DEVIL_NUM")
+                types.InlineKeyboardButton("𝑂𝑊𝑁𝐸𝑅⚙️", url="https://t.me/hackerTaker"),
+                types.InlineKeyboardButton("𓆩𝘽𝙤𝙩 𝘾𝙝𝙖𝙣𝙣𝙚𝙡𓆪", url="https://t.me/numhj")
             )
             bot.send_message(
                 user_id,
@@ -1152,7 +1152,7 @@ def back_to_countries(call):
         bot.answer_callback_query(call.id)
 
 # ======================
-# 🔐 لوحة التحكم الإدارية الكاملة
+# 🔐 لوحة التحكم الإدارية
 # ======================
 def admin_main_menu():
     markup = types.InlineKeyboardMarkup()
@@ -1281,7 +1281,7 @@ def receive_new_cookies(message):
         bot.reply_to(message, f"❌ خطأ: {str(e)}")
 
 # ======================
-# 🛠 أزرار الأدمن الإضافية
+# 🛠 أزرار الأدمن
 # ======================
 @bot.callback_query_handler(func=lambda call: call.data == "admin_force_sub")
 def admin_force_sub(call):
@@ -2004,9 +2004,6 @@ def run_bot():
 # ======================
 # ▶️ تشغيل البوت مع Flask
 # ======================
-from flask import Flask
-import os
-
 app = Flask(__name__)
 
 @app.route('/')
@@ -2018,7 +2015,10 @@ def health():
     return {"status": "ok", "bot": "Taker2 OTP"}
 
 if __name__ == "__main__":
-    threading.Thread(target=main_loop, daemon=True).start()
-    # تشغيل Flask على المنفذ المطلوب
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
+    # تشغيل Flask في thread منفصل
+    flask_thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)), debug=False, use_reloader=False))
+    flask_thread.daemon = True
+    flask_thread.start()
+    
+    # تشغيل البوت
+    run_bot()
